@@ -1,4 +1,4 @@
-# Geocaching Digital — O Legado do Lidador
+# Geocaching Digital — Desafio Microbit
 
 > Atividade de escape room com micro:bits, cifra rúnica e geocache real.  
 > Escola Secundária da Maia · 20 de março de 2026 · 19h00–23h00
