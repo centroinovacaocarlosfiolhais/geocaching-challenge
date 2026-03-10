@@ -1,0 +1,694 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Guião do Dinamizador — O Legado do Lidador</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;900&family=Source+Code+Pro:wght@400;600&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --gold: #c9a84c;
+    --gold-light: #e8c97a;
+    --gold-dim: #7a6530;
+    --dark: #0d0f14;
+    --dark2: #13161e;
+    --dark3: #1a1e2a;
+    --dark4: #222636;
+    --dark5: #2c3145;
+    --text: #d4cfc4;
+    --text-dim: #8a8578;
+    --accent: #4a7fa5;
+    --accent-light: #6aafd4;
+    --red: #c05050;
+    --green: #5a9e6f;
+    --led-on: #f5e642;
+    --led-off: #1a1c28;
+    --nav-w: 248px;
+    --nav-col-w: 52px;
+    --tr: 0.32s cubic-bezier(0.4,0,0.2,1);
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  html { scroll-behavior:smooth; }
+  body { background:var(--dark); color:var(--text); font-family:'Lato',sans-serif; font-weight:300; line-height:1.7; min-height:100vh; }
+  body::before { content:''; position:fixed; inset:0; background-image: radial-gradient(ellipse 80% 60% at 10% 20%,rgba(74,127,165,.055) 0%,transparent 60%), radial-gradient(ellipse 60% 80% at 90% 80%,rgba(201,168,76,.045) 0%,transparent 60%); pointer-events:none; z-index:0; }
+
+  /* ── SIDEBAR ── */
+  nav { position:fixed; left:0; top:0; bottom:0; width:var(--nav-w); background:var(--dark2); border-right:1px solid rgba(201,168,76,.14); display:flex; flex-direction:column; z-index:100; overflow:hidden; transition:width var(--tr); }
+  nav.collapsed { width:var(--nav-col-w); }
+
+  .nav-toggle { position:absolute; top:16px; right:10px; width:26px; height:26px; border:1px solid rgba(201,168,76,.22); border-radius:5px; background:var(--dark4); cursor:pointer; display:flex; align-items:center; justify-content:center; color:var(--gold-dim); font-size:12px; transition:all .2s, transform var(--tr); z-index:10; flex-shrink:0; }
+  .nav-toggle:hover { border-color:var(--gold); color:var(--gold); background:var(--dark5); }
+  nav.collapsed .nav-toggle { transform:scaleX(-1); }
+
+  .nav-brand { padding:16px 44px 16px 14px; border-bottom:1px solid rgba(201,168,76,.1); white-space:nowrap; overflow:hidden; min-height:62px; display:flex; flex-direction:column; justify-content:center; flex-shrink:0; position:relative; }
+  .nav-brand .eyebrow { font-family:'Cinzel',serif; font-size:8px; letter-spacing:3px; color:var(--gold-dim); text-transform:uppercase; display:block; margin-bottom:4px; transition:opacity var(--tr); }
+  .nav-brand .title { font-family:'Cinzel',serif; font-size:13px; font-weight:600; color:var(--gold); line-height:1.3; transition:opacity var(--tr); }
+  nav.collapsed .nav-brand .eyebrow,
+  nav.collapsed .nav-brand .title { opacity:0; }
+  .nav-brand-icon { position:absolute; left:13px; top:50%; transform:translateY(-50%); font-size:18px; opacity:0; transition:opacity var(--tr); pointer-events:none; }
+  nav.collapsed .nav-brand-icon { opacity:1; }
+
+  .nav-date { padding:7px 14px; font-size:10px; color:var(--text-dim); border-bottom:1px solid rgba(255,255,255,.04); font-family:'Source Code Pro',monospace; white-space:nowrap; overflow:hidden; transition:opacity var(--tr); flex-shrink:0; }
+  nav.collapsed .nav-date { opacity:0; }
+
+  nav ul { list-style:none; padding:8px 0; flex:1; overflow-y:auto; overflow-x:hidden; }
+  nav ul li a { display:flex; align-items:center; gap:9px; padding:7px 12px; text-decoration:none; color:var(--text-dim); font-size:12px; transition:color .2s,background .2s,border-color .2s; border-left:2px solid transparent; white-space:nowrap; overflow:hidden; }
+  nav ul li a:hover, nav ul li a.active { color:var(--gold-light); background:rgba(201,168,76,.07); border-left-color:var(--gold); }
+  .nav-num { font-family:'Source Code Pro',monospace; font-size:10px; color:var(--gold-dim); min-width:22px; flex-shrink:0; display:flex; align-items:center; justify-content:center; background:var(--dark4); border:1px solid rgba(201,168,76,.16); border-radius:4px; padding:2px 4px; transition:background .2s; }
+  nav ul li a:hover .nav-num, nav ul li a.active .nav-num { background:rgba(201,168,76,.14); color:var(--gold); border-color:var(--gold-dim); }
+  .nav-label { opacity:1; transition:opacity var(--tr); overflow:hidden; }
+  nav.collapsed .nav-label { opacity:0; }
+
+  .nav-progress { padding:12px 12px; border-top:1px solid rgba(201,168,76,.1); flex-shrink:0; overflow:hidden; }
+  .nav-prog-label { font-size:9px; color:var(--text-dim); letter-spacing:2px; text-transform:uppercase; margin-bottom:6px; font-family:'Source Code Pro',monospace; white-space:nowrap; transition:opacity var(--tr); }
+  nav.collapsed .nav-prog-label { opacity:0; }
+  .progress-bar { height:3px; background:var(--dark5); border-radius:2px; overflow:hidden; }
+  .progress-fill { height:100%; background:linear-gradient(90deg,var(--gold-dim),var(--gold)); width:0%; transition:width .4s; border-radius:2px; }
+
+  /* ── MAIN ── */
+  main { margin-left:var(--nav-w); position:relative; z-index:1; transition:margin-left var(--tr); }
+  body.nav-collapsed main { margin-left:var(--nav-col-w); }
+
+  /* ── HERO ── */
+  .hero { background:linear-gradient(135deg,var(--dark2) 0%,var(--dark3) 100%); border-bottom:1px solid rgba(201,168,76,.18); padding:54px 60px 42px; position:relative; overflow:hidden; }
+  .hero::after { content:'ᚱ'; position:absolute; right:54px; top:50%; transform:translateY(-50%); font-size:200px; opacity:.025; color:var(--gold); pointer-events:none; line-height:1; }
+  .hero-eyebrow { font-family:'Source Code Pro',monospace; font-size:10px; letter-spacing:4px; color:var(--gold-dim); text-transform:uppercase; margin-bottom:11px; display:flex; align-items:center; gap:10px; }
+  .hero-eyebrow::before { content:''; display:inline-block; width:26px; height:1px; background:var(--gold-dim); }
+  .hero h1 { font-family:'Cinzel',serif; font-size:38px; font-weight:900; color:var(--gold); line-height:1.1; margin-bottom:4px; letter-spacing:1px; }
+  .hero h2 { font-family:'Cinzel',serif; font-size:17px; font-weight:400; color:var(--text-dim); margin-bottom:28px; }
+  .hero-meta { display:flex; gap:26px; flex-wrap:wrap; }
+  .meta-item { display:flex; flex-direction:column; gap:2px; }
+  .meta-label { font-size:9px; letter-spacing:2px; color:var(--gold-dim); text-transform:uppercase; font-family:'Source Code Pro',monospace; }
+  .meta-value { font-size:13px; color:var(--text); font-weight:700; }
+
+  /* ── SECTIONS ── */
+  .section { padding:42px 60px; border-bottom:1px solid rgba(255,255,255,.04); }
+  .section:last-child { border-bottom:none; }
+  .section-header { display:flex; align-items:baseline; gap:13px; margin-bottom:22px; }
+  .section-num { font-family:'Source Code Pro',monospace; font-size:10px; color:var(--gold-dim); letter-spacing:2px; min-width:22px; }
+  .section h2 { font-family:'Cinzel',serif; font-size:20px; font-weight:600; color:var(--gold-light); letter-spacing:.5px; }
+  .section h3 { font-family:'Lato',sans-serif; font-size:10px; font-weight:700; color:var(--accent-light); letter-spacing:3px; text-transform:uppercase; margin:24px 0 9px; }
+  .section p { font-size:14px; line-height:1.8; color:var(--text); max-width:700px; margin-bottom:10px; }
+
+  /* ── STATS ── */
+  .stats-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(170px,1fr)); gap:9px; margin-bottom:18px; }
+  .stat-card { background:var(--dark3); border:1px solid rgba(201,168,76,.12); border-radius:6px; padding:13px 16px; transition:border-color .2s; }
+  .stat-card:hover { border-color:rgba(201,168,76,.3); }
+  .stat-label { font-size:9px; letter-spacing:2px; text-transform:uppercase; color:var(--text-dim); font-family:'Source Code Pro',monospace; margin-bottom:4px; }
+  .stat-val { font-size:16px; font-weight:700; color:var(--gold-light); font-family:'Cinzel',serif; }
+
+  /* ── NARRATIVE ── */
+  .narrative-block { background:var(--dark3); border-left:3px solid var(--gold); border-radius:0 8px 8px 0; padding:20px 24px 20px 30px; font-style:italic; color:var(--text); font-size:15px; line-height:1.9; max-width:640px; position:relative; }
+  .narrative-block::before { content:'"'; font-family:'Cinzel',serif; font-size:52px; color:var(--gold-dim); position:absolute; top:-6px; left:16px; line-height:1; opacity:.45; }
+
+  /* ── STATION TABLE ── */
+  .station-grid { display:grid; gap:7px; margin:13px 0; }
+  .station-row { display:grid; grid-template-columns:62px 66px 62px 1fr 170px; background:var(--dark3); border:1px solid rgba(255,255,255,.06); border-radius:6px; overflow:hidden; transition:border-color .2s; text-decoration:none; color:inherit; }
+  .station-row:hover { border-color:rgba(201,168,76,.27); }
+  .station-row.header { background:var(--dark5); border-color:rgba(201,168,76,.17); }
+  .station-cell { padding:9px 11px; font-size:13px; display:flex; align-items:center; border-right:1px solid rgba(255,255,255,.05); }
+  .station-cell:last-child { border-right:none; }
+  .station-row.header .station-cell { font-size:9px; letter-spacing:2px; text-transform:uppercase; color:var(--gold-dim); font-family:'Source Code Pro',monospace; }
+  .canal-badge { background:var(--dark5); border:1px solid var(--gold-dim); border-radius:4px; padding:2px 7px; font-family:'Source Code Pro',monospace; font-size:11px; color:var(--gold); font-weight:600; }
+  .letra-badge { font-family:'Cinzel',serif; font-size:18px; font-weight:900; color:var(--gold-light); }
+  .local-tag { font-size:12px; color:var(--accent-light); font-style:italic; }
+
+  /* ── LED ── */
+  .led-grid { display:inline-grid; grid-template-columns:repeat(5,1fr); gap:2px; padding:5px; background:#080a10; border-radius:4px; border:1px solid rgba(255,255,255,.08); }
+  .led-pixel { border-radius:2px; background:var(--led-off); }
+  .led-pixel.on { background:var(--led-on); box-shadow:0 0 5px rgba(245,230,66,.7); }
+
+  /* ── LED REF CARDS ── */
+  .led-ref-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(164px,1fr)); gap:13px; margin:18px 0; }
+  .led-ref-card { background:var(--dark3); border:1px solid rgba(255,255,255,.07); border-radius:8px; padding:18px 14px; display:flex; flex-direction:column; align-items:center; gap:9px; transition:border-color .2s,transform .2s; }
+  .led-ref-card:hover { border-color:rgba(201,168,76,.28); transform:translateY(-2px); }
+  .led-ref-letter { font-family:'Cinzel',serif; font-size:24px; font-weight:900; color:var(--gold-light); }
+  .led-ref-rune { font-size:18px; color:var(--gold-dim); opacity:.8; }
+  .led-ref-canal { font-family:'Source Code Pro',monospace; font-size:10px; color:var(--text-dim); text-align:center; }
+  .led-ref-desc { font-size:11px; color:var(--text-dim); text-align:center; line-height:1.4; }
+
+  /* ── FASE TIMELINE ── */
+  .timeline { position:relative; padding-left:24px; }
+  .timeline::before { content:''; position:absolute; left:6px; top:0; bottom:0; width:1px; background:linear-gradient(to bottom,var(--gold-dim),transparent); }
+  .fase { position:relative; margin-bottom:20px; }
+  .fase::before { content:''; position:absolute; left:-19px; top:13px; width:7px; height:7px; border-radius:50%; background:var(--gold); box-shadow:0 0 7px var(--gold-dim); }
+  .fase-header { display:flex; align-items:center; gap:9px; cursor:pointer; user-select:none; padding:10px 13px; background:var(--dark3); border:1px solid rgba(255,255,255,.06); border-radius:6px; transition:background .15s,border-color .15s; }
+  .fase-header:hover { background:var(--dark4); border-color:rgba(201,168,76,.18); }
+  .fase-time { font-family:'Source Code Pro',monospace; font-size:11px; font-weight:600; color:var(--gold); background:rgba(201,168,76,.09); border:1px solid rgba(201,168,76,.2); border-radius:4px; padding:2px 8px; white-space:nowrap; }
+  .fase-title { font-size:13px; font-weight:700; color:var(--text); flex:1; }
+  .fase-toggle { color:var(--text-dim); font-size:11px; font-family:'Source Code Pro',monospace; transition:transform .22s,color .15s; }
+  .fase-header.open .fase-toggle { transform:rotate(90deg); color:var(--gold); }
+  .fase-body { padding:0 13px; overflow:hidden; max-height:0; transition:max-height .35s ease,padding .25s ease; background:rgba(255,255,255,.013); border:1px solid rgba(255,255,255,.04); border-top:none; border-radius:0 0 6px 6px; }
+  .fase-body.open { max-height:600px; padding:11px 13px 13px; }
+  .fase-body ul { list-style:none; }
+  .fase-body ul li { font-size:13px; color:var(--text); padding:3px 0 3px 17px; position:relative; line-height:1.6; }
+  .fase-body ul li::before { content:'▸'; position:absolute; left:0; color:var(--gold-dim); font-size:10px; top:6px; }
+  .fase-body ul li.sub { padding-left:33px; color:var(--text-dim); }
+  .fase-body ul li.sub::before { content:'·'; left:18px; color:var(--accent); top:4px; font-size:14px; }
+  .fase-body .note { font-size:12px; color:var(--accent-light); font-style:italic; padding:7px 11px; background:rgba(74,127,165,.07); border-radius:4px; margin-top:7px; border-left:2px solid var(--accent); }
+
+  /* ── CHECKLIST ── */
+  .checklist-group { margin-bottom:20px; }
+  .checklist-group-title { font-family:'Source Code Pro',monospace; font-size:9px; letter-spacing:2px; text-transform:uppercase; color:var(--gold-dim); margin-bottom:6px; padding-bottom:5px; border-bottom:1px solid rgba(201,168,76,.12); }
+  .check-item { display:flex; align-items:flex-start; gap:10px; padding:6px 9px; border-radius:5px; transition:background .15s; cursor:pointer; }
+  .check-item:hover { background:rgba(255,255,255,.03); }
+  .check-item input[type="checkbox"] { appearance:none; width:16px; height:16px; border:1px solid rgba(201,168,76,.3); border-radius:4px; background:var(--dark4); cursor:pointer; flex-shrink:0; margin-top:2px; position:relative; transition:all .15s; }
+  .check-item input[type="checkbox"]:checked { background:var(--gold); border-color:var(--gold); }
+  .check-item input[type="checkbox"]:checked::after { content:'✓'; position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-size:10px; color:var(--dark); font-weight:700; }
+  .check-item label { font-size:13px; color:var(--text); cursor:pointer; line-height:1.5; transition:color .15s; }
+  .check-item:has(input:checked) label { color:var(--text-dim); text-decoration:line-through; }
+  .checklist-progress { display:flex; align-items:center; gap:11px; margin-bottom:20px; padding:11px 14px; background:var(--dark3); border-radius:7px; border:1px solid rgba(201,168,76,.12); }
+  .checklist-progress-text { font-family:'Source Code Pro',monospace; font-size:12px; color:var(--gold); white-space:nowrap; }
+  .checklist-progress-bar { flex:1; height:3px; background:var(--dark5); border-radius:2px; overflow:hidden; }
+  .checklist-progress-fill { height:100%; background:linear-gradient(90deg,var(--gold-dim),var(--gold)); width:0%; transition:width .3s; border-radius:2px; }
+  .btn-reset { font-size:10px; color:var(--text-dim); background:none; border:1px solid rgba(255,255,255,.09); border-radius:4px; padding:3px 9px; cursor:pointer; font-family:'Source Code Pro',monospace; transition:all .2s; }
+  .btn-reset:hover { color:var(--red); border-color:var(--red); }
+
+  /* ── CONTINGÊNCIAS ── */
+  .contingencia { background:var(--dark3); border:1px solid rgba(255,255,255,.06); border-radius:7px; margin-bottom:9px; overflow:hidden; }
+  .contingencia-header { padding:12px 15px; cursor:pointer; display:flex; align-items:center; gap:10px; user-select:none; transition:background .15s; }
+  .contingencia-header:hover { background:rgba(255,255,255,.03); }
+  .contingencia-icon { font-size:14px; flex-shrink:0; }
+  .contingencia-title { font-size:13px; font-weight:700; color:var(--text); flex:1; }
+  .contingencia-arrow { color:var(--text-dim); font-size:10px; transition:transform .22s; font-family:'Source Code Pro',monospace; }
+  .contingencia.open .contingencia-arrow { transform:rotate(90deg); }
+  .contingencia-body { padding:0 15px; font-size:13px; color:var(--text); line-height:1.7; max-height:0; overflow:hidden; transition:max-height .3s ease,padding .25s ease; }
+  .contingencia.open .contingencia-body { max-height:280px; padding:0 15px 13px; }
+
+  /* ── ALERTS ── */
+  .alert { display:flex; gap:10px; padding:11px 15px; border-radius:6px; margin:12px 0; font-size:13px; line-height:1.6; }
+  .alert.warn { background:rgba(192,80,80,.09); border:1px solid rgba(192,80,80,.27); color:#e8a0a0; }
+  .alert.info { background:rgba(74,127,165,.09); border:1px solid rgba(74,127,165,.27); color:var(--accent-light); }
+  .alert.success { background:rgba(90,158,111,.09); border:1px solid rgba(90,158,111,.27); color:#90d0a8; }
+
+  /* ── STEP LIST ── */
+  .steps { list-style:none; counter-reset:steps; padding:0; max-width:600px; }
+  .steps li { font-size:13px; padding:5px 0 5px 28px; position:relative; counter-increment:steps; color:var(--text); line-height:1.6; }
+  .steps li::before { content:counter(steps); position:absolute; left:0; top:6px; width:18px; height:18px; background:var(--gold-dim); border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:10px; font-weight:700; color:var(--dark); font-family:'Source Code Pro',monospace; }
+
+  /* ── MATERIAL GRID ── */
+  .material-grid { display:grid; grid-template-columns:1fr 1fr; gap:6px; max-width:650px; margin:10px 0; }
+  .material-item { font-size:13px; padding:8px 12px; background:var(--dark3); border-radius:6px; border:1px solid rgba(255,255,255,.06); color:var(--text); display:flex; align-items:center; gap:7px; }
+  .material-item em { color:var(--text-dim); font-size:12px; }
+
+  /* ── FAB ── */
+  .fab-print { position:fixed; bottom:24px; right:24px; background:var(--gold); color:var(--dark); border:none; border-radius:50%; width:46px; height:46px; font-size:17px; cursor:pointer; box-shadow:0 4px 17px rgba(201,168,76,.3); transition:all .2s; z-index:200; display:flex; align-items:center; justify-content:center; }
+  .fab-print:hover { transform:scale(1.08); box-shadow:0 6px 24px rgba(201,168,76,.46); }
+
+  ::-webkit-scrollbar { width:5px; }
+  ::-webkit-scrollbar-track { background:var(--dark2); }
+  ::-webkit-scrollbar-thumb { background:var(--dark5); border-radius:3px; }
+  ::-webkit-scrollbar-thumb:hover { background:var(--gold-dim); }
+
+  @media print {
+    nav, .fab-print { display:none !important; }
+    main { margin-left:0 !important; }
+    .section { page-break-inside:avoid; }
+    body { background:white; color:black; }
+  }
+</style>
+</head>
+<body>
+
+<nav id="sidebar">
+  <span class="nav-brand-icon">⚔</span>
+  <button class="nav-toggle" onclick="toggleNav()" title="Expandir / Colapsar">◀</button>
+  <div class="nav-brand">
+    <span class="eyebrow">Guião · Dinamizador</span>
+    <span class="title">O Legado<br>do Lidador</span>
+  </div>
+  <div class="nav-date">📅 20 mar 2026 · 19h–23h</div>
+  <ul>
+    <li><a href="#visao-geral"><span class="nav-num">01</span><span class="nav-label">Visão Geral</span></a></li>
+    <li><a href="#narrativa"><span class="nav-num">02</span><span class="nav-label">Narrativa</span></a></li>
+    <li><a href="#setup"><span class="nav-num">03</span><span class="nav-label">Setup & Preparação</span></a></li>
+    <li><a href="#estacoes"><span class="nav-num">04</span><span class="nav-label">Mapa das Estações</span></a></li>
+    <li><a href="#guiao"><span class="nav-num">05</span><span class="nav-label">Guião por Fases</span></a></li>
+    <li><a href="#led-ref"><span class="nav-num">06</span><span class="nav-label">Padrões Rúnicos</span></a></li>
+    <li><a href="#contingencias"><span class="nav-num">07</span><span class="nav-label">Contingências</span></a></li>
+    <li><a href="#checklist"><span class="nav-num">08</span><span class="nav-label">Checklist</span></a></li>
+  </ul>
+  <div class="nav-progress">
+    <div class="nav-prog-label">Checklist</div>
+    <div class="progress-bar"><div class="progress-fill" id="nav-progress-fill"></div></div>
+  </div>
+</nav>
+
+<main id="main-content">
+
+<div class="hero">
+  <div class="hero-eyebrow">Escola Secundária da Maia</div>
+  <h1>GEOCACHING DIGITAL</h1>
+  <h2>O Legado do Lidador</h2>
+  <div class="hero-meta">
+    <div class="meta-item"><span class="meta-label">Data</span><span class="meta-value">20 Março 2026</span></div>
+    <div class="meta-item"><span class="meta-label">Horário</span><span class="meta-value">19h00 – 23h00</span></div>
+    <div class="meta-item"><span class="meta-label">Participantes</span><span class="meta-value">Até 10 pessoas</span></div>
+    <div class="meta-item"><span class="meta-label">Grupos</span><span class="meta-value">2–3 de 3–4</span></div>
+    <div class="meta-item"><span class="meta-label">Palavra-chave</span><span class="meta-value" style="font-family:'Source Code Pro',monospace;color:var(--gold);letter-spacing:4px">LIDADOR</span></div>
+  </div>
+</div>
+
+<!-- 01 VISÃO GERAL -->
+<section class="section" id="visao-geral">
+  <div class="section-header"><span class="section-num">01</span><h2>Visão Geral da Atividade</h2></div>
+  <p>Esta atividade combina <strong>geocaching</strong>, <strong>escape room</strong> e <strong>programação de hardware</strong> numa experiência noturna pela escola. Os participantes recebem um micro:bit e uma folha cifrada, exploram o edifício a varrer frequências de rádio, recolhem <strong>símbolos rúnicos LED</strong> que mapeiam para letras, e decifram a palavra-chave <strong>LIDADOR</strong> — homenagem a Soeiro Mendes da Maia.</p>
+  <div class="stats-grid" style="margin-top:18px">
+    <div class="stat-card"><div class="stat-label">Tecnologia</div><div class="stat-val" style="font-size:13px;font-family:'Lato',sans-serif">micro:bit V2</div></div>
+    <div class="stat-card"><div class="stat-label">Estações</div><div class="stat-val">6</div></div>
+    <div class="stat-card"><div class="stat-label">Canais Rádio</div><div class="stat-val" style="font-size:11px;font-family:'Source Code Pro',monospace">10·20·30·40·50·60</div></div>
+    <div class="stat-card"><div class="stat-label">Cifra</div><div class="stat-val" style="font-size:13px;font-family:'Lato',sans-serif">Runas → Letras</div></div>
+    <div class="stat-card"><div class="stat-label">Desafio Final</div><div class="stat-val" style="font-size:13px;font-family:'Lato',sans-serif">Terminal CRT</div></div>
+    <div class="stat-card"><div class="stat-label">Prémio</div><div class="stat-val" style="font-size:13px;font-family:'Lato',sans-serif">Geocache Real</div></div>
+  </div>
+  <div class="alert info">ℹ️ A letra <strong>D</strong> aparece duas vezes em LIDADOR. O canal 30 preenche as posições 3 e 5 de uma só vez — é o momento mais satisfatório do puzzle!</div>
+</section>
+
+<!-- 02 NARRATIVA -->
+<section class="section" id="narrativa">
+  <div class="section-header"><span class="section-num">02</span><h2>Narrativa para os Participantes</h2></div>
+  <p>Ler em voz alta no briefing, ou projetar num ecrã. Cria o contexto emocional da atividade.</p>
+  <div class="narrative-block">
+    "Soeiro Mendes da Maia, o cavaleiro que deu nome a esta cidade, deixou uma mensagem secreta antes da sua última batalha. Essa mensagem foi fragmentada e os seus fragmentos espalhados pelo edifício. Alguém os escondeu em dispositivos que só emitem sinais a quem souber encontrá-los.
+    <br><br>
+    O vosso micro:bit é a vossa chave. Varrem os canais, encontrem os sinais, decifrem os símbolos e descubram o legado do Lidador. Têm até à meia-noite."
+  </div>
+  <div class="alert success" style="margin-top:16px">🏰 <strong>Contexto histórico:</strong> Soeiro Mendes da Maia foi um cavaleiro medieval dos séc. XI–XII, senhor do território que viria a ser a Maia. A alcunha "O Lidador" significa "o guerreiro" ou "o que combate".</div>
+</section>
+
+<!-- 03 SETUP -->
+<section class="section" id="setup">
+  <div class="section-header"><span class="section-num">03</span><h2>Preparação & Setup</h2></div>
+  <h3>Materiais necessários</h3>
+  <div class="material-grid">
+    <div class="material-item">⚡ 6× micro:bit + pilhas <em>(transmissores)</em></div>
+    <div class="material-item">📡 2–3× micro:bit + pilhas <em>(recetores)</em></div>
+    <div class="material-item">🔋 Pilhas AAA suplentes</div>
+    <div class="material-item">📦 Caixas para esconder os tx</div>
+    <div class="material-item">🖨️ Folhas dos participantes impressas</div>
+    <div class="material-item">✏️ Canetas / lápis — 1 por grupo</div>
+    <div class="material-item">💻 PC com terminal CRT aberto</div>
+    <div class="material-item">📓 Logbook + caneta (geocache)</div>
+  </div>
+  <h3>Programar os micro:bits</h3>
+  <p>Cada transmissor usa o código respetivo. Emite em loop o símbolo rúnico no canal fixo com potência reduzida (<code style="font-family:'Source Code Pro',monospace;color:var(--gold);font-size:12px">power=0</code> ≈ 1–2m de alcance). O recetor varre os canais com os botões A e B.</p>
+  <h3>Esconder os transmissores — 1h antes</h3>
+  <ol class="steps">
+    <li>Ligar todos e verificar que estão a emitir (símbolo rúnico animado)</li>
+    <li>Confirmar <code style="font-family:'Source Code Pro',monospace;font-size:12px;color:var(--gold)">power=0</code> no código (raio curto, obriga a aproximar)</li>
+    <li>Esconder em locais acessíveis mas não óbvios</li>
+    <li>Registar a localização exata de cada um</li>
+    <li>Testar o recetor em cada local a menos de 2m do transmissor</li>
+  </ol>
+</section>
+
+<!-- 04 ESTAÇÕES -->
+<section class="section" id="estacoes">
+  <div class="section-header"><span class="section-num">04</span><h2>Mapa das Estações</h2></div>
+  <p>Clica numa estação para saltar para o seu símbolo rúnico em <a href="#led-ref" style="color:var(--gold)">Padrões Rúnicos ↓</a>.</p>
+  <div class="station-grid" style="margin-top:16px">
+    <div class="station-row header">
+      <div class="station-cell">Canal</div>
+      <div class="station-cell">Letra</div>
+      <div class="station-cell">Símbolo</div>
+      <div class="station-cell">Runa / significado</div>
+      <div class="station-cell">Local sugerido</div>
+    </div>
+    <a class="station-row" href="#led-L">
+      <div class="station-cell"><span class="canal-badge">10</span></div>
+      <div class="station-cell"><span class="letra-badge">L</span></div>
+      <div class="station-cell"><div class="led-grid" id="mini-L"></div></div>
+      <div class="station-cell" style="font-size:12px">ᛚ Laguz — água, fluxo</div>
+      <div class="station-cell"><span class="local-tag">Biblioteca</span></div>
+    </a>
+    <a class="station-row" href="#led-I">
+      <div class="station-cell"><span class="canal-badge">20</span></div>
+      <div class="station-cell"><span class="letra-badge">I</span></div>
+      <div class="station-cell"><div class="led-grid" id="mini-I"></div></div>
+      <div class="station-cell" style="font-size:12px">✳ Asterisco — cruz + diagonais</div>
+      <div class="station-cell"><span class="local-tag">Corredor principal</span></div>
+    </a>
+    <a class="station-row" href="#led-D" style="border-color:rgba(192,80,80,.2)">
+      <div class="station-cell"><span class="canal-badge">30</span></div>
+      <div class="station-cell"><span class="letra-badge" style="color:#e8a0a0">D×2</span></div>
+      <div class="station-cell"><div class="led-grid" id="mini-D"></div></div>
+      <div class="station-cell" style="font-size:12px">ᛞ Dagaz — aurora, rutura</div>
+      <div class="station-cell"><span class="local-tag">Lab de Ciências</span></div>
+    </a>
+    <a class="station-row" href="#led-A">
+      <div class="station-cell"><span class="canal-badge">40</span></div>
+      <div class="station-cell"><span class="letra-badge">A</span></div>
+      <div class="station-cell"><div class="led-grid" id="mini-A"></div></div>
+      <div class="station-cell" style="font-size:12px">ᚨ Ansuz — sopro divino</div>
+      <div class="station-cell"><span class="local-tag">Ginásio</span></div>
+    </a>
+    <a class="station-row" href="#led-O">
+      <div class="station-cell"><span class="canal-badge">50</span></div>
+      <div class="station-cell"><span class="letra-badge">O</span></div>
+      <div class="station-cell"><div class="led-grid" id="mini-O"></div></div>
+      <div class="station-cell" style="font-size:12px">ᛟ Othala — herança, lar</div>
+      <div class="station-cell"><span class="local-tag">Cantina</span></div>
+    </a>
+    <a class="station-row" href="#led-R">
+      <div class="station-cell"><span class="canal-badge">60</span></div>
+      <div class="station-cell"><span class="letra-badge">R</span></div>
+      <div class="station-cell"><div class="led-grid" id="mini-R"></div></div>
+      <div class="station-cell" style="font-size:12px"># Hash — grelha dupla</div>
+      <div class="station-cell"><span class="local-tag">Entrada principal</span></div>
+    </a>
+  </div>
+  <div class="alert warn" style="margin-top:13px">⚠️ Canal 30 (ᛞ Dagaz · letra D) preenche as posições 3 e 5 de LIDADOR simultaneamente. Relembrar no briefing.</div>
+</section>
+
+<!-- 05 GUIÃO POR FASES -->
+<section class="section" id="guiao">
+  <div class="section-header"><span class="section-num">05</span><h2>Guião por Fases</h2></div>
+  <p style="margin-bottom:18px">Clica em cada fase para expandir / recolher.</p>
+  <div class="timeline">
+
+    <div class="fase">
+      <div class="fase-header" onclick="toggleFase(this)">
+        <span class="fase-time">19h00 – 19h20</span>
+        <span class="fase-title">Briefing & Entrega de Material</span>
+        <span class="fase-toggle">▶</span>
+      </div>
+      <div class="fase-body">
+        <ul>
+          <li>Reunir todos no ponto de partida (onde está o terminal retrô)</li>
+          <li>Apresentar a narrativa do Lidador — ler em voz alta ou projetar</li>
+          <li>Distribuir micro:bits e folhas cifradas — um por grupo</li>
+          <li>Explicar a interface do micro:bit:</li>
+          <li class="sub">Botão A → desce o canal (ex: 3 → 2)</li>
+          <li class="sub">Botão B → sobe o canal (ex: 2 → 3)</li>
+          <li class="sub">Ecrã mostra número do canal atual (1 a 6)</li>
+          <li class="sub">Quando recebem sinal → beep + símbolo rúnico LED aparece</li>
+          <li>Sublinhar que é preciso ficar <strong>muito perto</strong> do transmissor para receber sinal</li>
+          <li>Mostrar como preencher a folha: símbolo → letra → substituir na cifra</li>
+          <li>Responder a dúvidas. <strong>Não revelar localizações.</strong></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="fase">
+      <div class="fase-header" onclick="toggleFase(this)">
+        <span class="fase-time">19h20 – 21h30</span>
+        <span class="fase-title">Exploração Livre</span>
+        <span class="fase-toggle">▶</span>
+      </div>
+      <div class="fase-body">
+        <ul>
+          <li>Grupos exploram o edifício de forma independente</li>
+          <li>Dinamizador disponível mas sem interferir ativamente</li>
+          <li>Pistas progressivas se um grupo ficar bloqueado 20+ minutos:</li>
+          <li class="sub">Nível 1 — zona geral: "Ainda faltam estações no piso 1"</li>
+          <li class="sub">Nível 2 — zona específica: "Tenta perto de onde se come"</li>
+          <li class="sub">Nível 3 — acompanhar ao local (último recurso)</li>
+          <li>Circular pelos espaços para verificar que os transmissores estão a funcionar</li>
+        </ul>
+        <div class="note">💡 Se um grupo terminar muito cedo, ativar puzzle bónus: 7.º micro:bit (canal 70) com mensagem histórica extra sobre o Lidador.</div>
+      </div>
+    </div>
+
+    <div class="fase">
+      <div class="fase-header" onclick="toggleFase(this)">
+        <span class="fase-time">21h30 – 22h00</span>
+        <span class="fase-title">Decifrar & Desafio Final</span>
+        <span class="fase-toggle">▶</span>
+      </div>
+      <div class="fase-body">
+        <ul>
+          <li>Quando um grupo chega com LIDADOR completo na folha:</li>
+          <li class="sub">Convidar a escrever LIDADOR no prompt do terminal CRT</li>
+          <li class="sub">Deixar o momento de surpresa acontecer — não antecipar</li>
+          <li class="sub">Terminal mostra mensagem de parabéns + coordenadas GPS da geocache</li>
+          <li>Dar logbook e caneta ao grupo para assinar a cache</li>
+          <li>Primeiro grupo pode guiar os restantes enquanto aguarda</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="fase">
+      <div class="fase-header" onclick="toggleFase(this)">
+        <span class="fase-time">22h00 – 22h30</span>
+        <span class="fase-title">Debriefing Técnico</span>
+        <span class="fase-toggle">▶</span>
+      </div>
+      <div class="fase-body">
+        <ul>
+          <li>Reunir todos e explicar o funcionamento do rádio do micro:bit (grupos, alcance, potência)</li>
+          <li>Mostrar o código — transmissor e recetor — e explicar a lógica</li>
+          <li>Falar sobre cifras de substituição e criptografia básica</li>
+          <li>Explicar o que é o geocaching e como funciona a rede oficial</li>
+          <li>Mostrar a geocache — os participantes são os <strong>primeiros a encontrá-la</strong></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="fase">
+      <div class="fase-header" onclick="toggleFase(this)">
+        <span class="fase-time">22h30 – 23h00</span>
+        <span class="fase-title">Lanche & Convívio</span>
+        <span class="fase-toggle">▶</span>
+      </div>
+      <div class="fase-body">
+        <ul>
+          <li>Lanche livre</li>
+          <li>Oportunidade para experimentar o código e os micro:bits livremente</li>
+          <li>Recolher todos os transmissores e material antes de sair</li>
+        </ul>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- 06 PADRÕES RÚNICOS -->
+<section class="section" id="led-ref">
+  <div class="section-header"><span class="section-num">06</span><h2>Padrões Rúnicos — Referência</h2></div>
+  <p>Uso exclusivo do dinamizador. Os padrões são inspirados nas runas <em>Elder Futhark</em> — cada um anguloso e geometricamente distinto para não gerar confusão na matriz 5×5. Os participantes têm a carta de símbolos na folha impressa.</p>
+
+  <div class="led-ref-grid" style="margin-top:20px">
+
+    <div class="led-ref-card" id="led-L">
+      <div class="led-ref-letter">L</div>
+      <div class="led-grid" id="big-L" style="gap:3px;padding:9px"></div>
+      <div class="led-ref-rune">ᛚ</div>
+      <div class="led-ref-canal">Canal 10 · Laguz</div>
+      <div class="led-ref-desc">Haste com ramo<br>e ponta oblíqua</div>
+    </div>
+
+    <div class="led-ref-card" id="led-I">
+      <div class="led-ref-letter">I</div>
+      <div class="led-grid" id="big-I" style="gap:3px;padding:9px"></div>
+      <div class="led-ref-rune" style="font-family:monospace;font-size:22px">✳</div>
+      <div class="led-ref-canal">Canal 20 · Asterisco</div>
+      <div class="led-ref-desc">Cruz + diagonais<br>em forma de *</div>
+    </div>
+
+    <div class="led-ref-card" id="led-D" style="border-color:rgba(192,80,80,.26)">
+      <div class="led-ref-letter" style="color:#e8a0a0">D</div>
+      <div class="led-grid" id="big-D" style="gap:3px;padding:9px"></div>
+      <div class="led-ref-rune" style="color:#c07070">ᛞ</div>
+      <div class="led-ref-canal" style="color:#e8a0a0">Canal 30 · Dagaz · 2× em LIDADOR</div>
+      <div class="led-ref-desc">Ampulheta —<br>dois triângulos opostos</div>
+    </div>
+
+    <div class="led-ref-card" id="led-A">
+      <div class="led-ref-letter">A</div>
+      <div class="led-grid" id="big-A" style="gap:3px;padding:9px"></div>
+      <div class="led-ref-rune">ᚨ</div>
+      <div class="led-ref-canal">Canal 40 · Ansuz</div>
+      <div class="led-ref-desc">Haste com dois<br>ramos oblíquos</div>
+    </div>
+
+    <div class="led-ref-card" id="led-O">
+      <div class="led-ref-letter">O</div>
+      <div class="led-grid" id="big-O" style="gap:3px;padding:9px"></div>
+      <div class="led-ref-rune">ᛟ</div>
+      <div class="led-ref-canal">Canal 50 · Othala</div>
+      <div class="led-ref-desc">Losango com<br>duas pernas</div>
+    </div>
+
+    <div class="led-ref-card" id="led-R">
+      <div class="led-ref-letter">R</div>
+      <div class="led-grid" id="big-R" style="gap:3px;padding:9px"></div>
+      <div class="led-ref-rune" style="font-family:monospace;font-size:22px">#</div>
+      <div class="led-ref-canal">Canal 60 · Hash</div>
+      <div class="led-ref-desc">Duas barras horiz.<br>+ duas barras vert.</div>
+    </div>
+
+  </div>
+</section>
+
+<!-- 07 CONTINGÊNCIAS -->
+<section class="section" id="contingencias">
+  <div class="section-header"><span class="section-num">07</span><h2>Contingências</h2></div>
+
+  <div class="contingencia" onclick="toggleCont(this)">
+    <div class="contingencia-header"><span class="contingencia-icon">⚡</span><span class="contingencia-title">Um transmissor deixou de funcionar</span><span class="contingencia-arrow">▶</span></div>
+    <div class="contingencia-body">Verificar as pilhas — é a causa mais comum. Se o problema for o código, reprogramar com o ficheiro já preparado. Se falhar definitivamente, retirar esse canal e informar os grupos (5 estações em vez de 6), riscando a linha da cifra na folha.</div>
+  </div>
+
+  <div class="contingencia" onclick="toggleCont(this)">
+    <div class="contingencia-header"><span class="contingencia-icon">📡</span><span class="contingencia-title">Sinal não é detetado na estação</span><span class="contingencia-arrow">▶</span></div>
+    <div class="contingencia-body">Verificar que o recetor está no canal certo. Pedir ao grupo para se aproximar mais (&lt;1m). Confirmar que o transmissor ainda está ligado. Em último caso, aumentar power=3 no código e reiniciar.</div>
+  </div>
+
+  <div class="contingencia" onclick="toggleCont(this)">
+    <div class="contingencia-header"><span class="contingencia-icon">🏃</span><span class="contingencia-title">Grupo termina muito cedo (antes das 21h)</span><span class="contingencia-arrow">▶</span></div>
+    <div class="contingencia-body">Ativar puzzle bónus: 7.º micro:bit (canal 70) com padrão especial e mensagem histórica extra. Preparar antecipadamente. Em alternativa, convidar a ajudar outros grupos como "guias".</div>
+  </div>
+
+  <div class="contingencia" onclick="toggleCont(this)">
+    <div class="contingencia-header"><span class="contingencia-icon">🕐</span><span class="contingencia-title">Grupos demoram muito (perto das 22h30)</span><span class="contingencia-arrow">▶</span></div>
+    <div class="contingencia-body">Iniciar o debriefing técnico em paralelo com os grupos ainda em exploração. Se necessário, revelar a localização das últimas estações para garantir que todos chegam ao terminal.</div>
+  </div>
+
+  <div class="contingencia" onclick="toggleCont(this)">
+    <div class="contingencia-header"><span class="contingencia-icon">💻</span><span class="contingencia-title">Terminal CRT não funciona no PC do local</span><span class="contingencia-arrow">▶</span></div>
+    <div class="contingencia-body">Ter o ficheiro HTML guardado localmente (não depende de internet). Testar antes da atividade nesse PC específico. Como fallback, usar o mesmo HTML num segundo dispositivo em modo desktop.</div>
+  </div>
+
+  <div class="contingencia" onclick="toggleCont(this)">
+    <div class="contingencia-header"><span class="contingencia-icon">🔒</span><span class="contingencia-title">Logística de segurança no espaço escolar</span><span class="contingencia-arrow">▶</span></div>
+    <div class="contingencia-body">Informar a segurança/portaria que a atividade ocupa o edifício até às 23h. Garantir que todos os espaços estão acessíveis e iluminados. Ter lista de participantes e contactos de emergência.</div>
+  </div>
+
+</section>
+
+<!-- 08 CHECKLIST -->
+<section class="section" id="checklist">
+  <div class="section-header"><span class="section-num">08</span><h2>Checklist de Preparação</h2></div>
+
+  <div class="checklist-progress">
+    <span class="checklist-progress-text" id="check-counter">0 / 14</span>
+    <div class="checklist-progress-bar"><div class="checklist-progress-fill" id="check-progress-fill"></div></div>
+    <button class="btn-reset" onclick="resetChecklist()">reset</button>
+  </div>
+
+  <div class="checklist-group">
+    <div class="checklist-group-title">Dias antes</div>
+    <label class="check-item"><input type="checkbox" class="check-box" onchange="updateChecklist()"><label>Programar os 6 transmissores + 2–3 recetores</label></label>
+    <label class="check-item"><input type="checkbox" class="check-box" onchange="updateChecklist()"><label>Testar comunicação rádio em todos os canais</label></label>
+    <label class="check-item"><input type="checkbox" class="check-box" onchange="updateChecklist()"><label>Imprimir folhas dos participantes (1 por grupo)</label></label>
+    <label class="check-item"><input type="checkbox" class="check-box" onchange="updateChecklist()"><label>Preparar terminal CRT no PC do local final</label></label>
+    <label class="check-item"><input type="checkbox" class="check-box" onchange="updateChecklist()"><label>Definir e confirmar localizações das estações</label></label>
+  </div>
+
+  <div class="checklist-group">
+    <div class="checklist-group-title">No dia — 1 hora antes</div>
+    <label class="check-item"><input type="checkbox" class="check-box" onchange="updateChecklist()"><label>Esconder transmissores e ligar todos</label></label>
+    <label class="check-item"><input type="checkbox" class="check-box" onchange="updateChecklist()"><label>Testar receção em cada estação com micro:bit recetor</label></label>
+    <label class="check-item"><input type="checkbox" class="check-box" onchange="updateChecklist()"><label>Ligar PC do terminal e abrir página HTML</label></label>
+    <label class="check-item"><input type="checkbox" class="check-box" onchange="updateChecklist()"><label>Preparar pilhas suplentes e material de emergência</label></label>
+    <label class="check-item"><input type="checkbox" class="check-box" onchange="updateChecklist()"><label>Preparar logbook da geocache</label></label>
+  </div>
+
+  <div class="checklist-group">
+    <div class="checklist-group-title">Durante a atividade</div>
+    <label class="check-item"><input type="checkbox" class="check-box" onchange="updateChecklist()"><label>Circular e monitorizar os grupos</label></label>
+    <label class="check-item"><input type="checkbox" class="check-box" onchange="updateChecklist()"><label>Registar quem encontrou cada estação primeiro</label></label>
+  </div>
+
+  <div class="checklist-group">
+    <div class="checklist-group-title">No fim</div>
+    <label class="check-item"><input type="checkbox" class="check-box" onchange="updateChecklist()"><label>Recolher todos os transmissores</label></label>
+    <label class="check-item"><input type="checkbox" class="check-box" onchange="updateChecklist()"><label>Registar geocache na plataforma oficial</label></label>
+  </div>
+
+</section>
+</main>
+
+<button class="fab-print" onclick="window.print()" title="Imprimir guião">🖨️</button>
+
+<script>
+/* ── RUNIC LED PATTERNS (5×5 — Elder Futhark inspired) ── */
+const P = {
+  // ᛚ Laguz: haste + ramo lateral + ponto oblíquo
+  L:[0,1,0,0,0, 0,1,0,0,0, 1,1,1,0,0, 0,1,0,1,0, 0,1,0,0,0],
+  // * Asterisco: centro + diagonais + cruz
+  I:[0,1,0,1,0, 0,0,1,0,0, 1,1,1,1,1, 0,0,1,0,0, 0,1,0,1,0],
+  // ᛞ Dagaz: ampulheta — dois triângulos opostos
+  D:[1,0,0,0,1, 0,1,0,1,0, 0,0,1,0,0, 0,1,0,1,0, 1,0,0,0,1],
+  // ᚨ Ansuz: haste vertical + dois ramos oblíquos para baixo
+  A:[0,0,1,0,0, 0,0,1,0,0, 0,1,1,1,0, 1,0,1,0,0, 0,0,1,0,0],
+  // ᛟ Othala: losango + pernas exteriores
+  O:[0,0,1,0,0, 0,1,0,1,0, 1,0,0,0,1, 0,1,0,1,0, 1,0,0,0,1],
+  // # Hash: duas barras horizontais + duas barras verticais
+  R:[0,1,0,1,0, 1,1,1,1,1, 0,1,0,1,0, 1,1,1,1,1, 0,1,0,1,0]
+};
+
+function renderLED(id, l, px) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.style.gridTemplateColumns = `repeat(5,${px}px)`;
+  el.innerHTML = '';
+  P[l].forEach(b => {
+    const d = document.createElement('div');
+    d.className = 'led-pixel' + (b ? ' on' : '');
+    d.style.width = d.style.height = px + 'px';
+    el.appendChild(d);
+  });
+}
+['L','I','D','A','O','R'].forEach(l => {
+  renderLED('mini-'+l, l, 9);
+  renderLED('big-'+l, l, 15);
+});
+
+/* ── SIDEBAR TOGGLE ── */
+function toggleNav() {
+  const nav = document.getElementById('sidebar');
+  nav.classList.toggle('collapsed');
+  document.body.classList.toggle('nav-collapsed');
+  try { localStorage.setItem('nav-col', nav.classList.contains('collapsed')); } catch(e){}
+}
+// restore — default: expanded
+(function(){
+  try { if (localStorage.getItem('nav-col') === 'true') { document.getElementById('sidebar').classList.add('collapsed'); document.body.classList.add('nav-collapsed'); } } catch(e){}
+})();
+
+/* ── FASE TOGGLE ── */
+function toggleFase(h) {
+  const b = h.nextElementSibling;
+  const t = h.querySelector('.fase-toggle');
+  const o = b.classList.toggle('open');
+  h.classList.toggle('open', o);
+  t.textContent = o ? '▼' : '▶';
+}
+
+/* ── CONTINGÊNCIA TOGGLE ── */
+function toggleCont(el) { el.classList.toggle('open'); }
+
+/* ── CHECKLIST ── */
+function updateChecklist() {
+  const all = document.querySelectorAll('.check-box');
+  const done = document.querySelectorAll('.check-box:checked').length;
+  const pct = (done / all.length) * 100;
+  document.getElementById('check-counter').textContent = done + ' / ' + all.length;
+  document.getElementById('check-progress-fill').style.width = pct + '%';
+  document.getElementById('nav-progress-fill').style.width = pct + '%';
+  try { localStorage.setItem('lidador-cl', JSON.stringify(Array.from(all).map(c=>c.checked))); } catch(e){}
+}
+function resetChecklist() {
+  document.querySelectorAll('.check-box').forEach(c => c.checked = false);
+  updateChecklist();
+}
+(function(){
+  try {
+    const s = JSON.parse(localStorage.getItem('lidador-cl')||'[]');
+    document.querySelectorAll('.check-box').forEach((c,i)=>{ if(s[i]) c.checked=s[i]; });
+    updateChecklist();
+  } catch(e){}
+})();
+
+/* ── ACTIVE NAV ── */
+const secs = document.querySelectorAll('section[id]');
+const links = document.querySelectorAll('nav ul li a');
+window.addEventListener('scroll', () => {
+  let cur = '';
+  secs.forEach(s => { if (window.scrollY >= s.offsetTop - 90) cur = s.id; });
+  links.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#'+cur));
+}, {passive:true});
+</script>
+</body>
+</html>

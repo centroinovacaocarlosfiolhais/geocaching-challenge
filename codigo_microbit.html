@@ -1,0 +1,682 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Código micro:bit — O Legado do Lidador</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Source+Code+Pro:wght@400;600&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0b0d12;
+    --bg2: #111318;
+    --bg3: #181b24;
+    --bg4: #1f2230;
+    --bg5: #272b3a;
+    --gold: #c9a84c;
+    --gold-l: #e8c97a;
+    --gold-d: #7a6530;
+    --text: #ccc8be;
+    --text-d: #7a7570;
+    --green: #5dbf7a;
+    --blue: #5aadcf;
+    --purple: #9b7fd4;
+    --red: #cf6060;
+    --orange: #d4924a;
+    --comment: #4a5568;
+    --led-on: #f5e642;
+    --led-off: #181a26;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  html { scroll-behavior:smooth; }
+  body { background:var(--bg); color:var(--text); font-family:'Lato',sans-serif; font-weight:300; line-height:1.6; }
+
+  /* ── HEADER ── */
+  header {
+    background: linear-gradient(135deg, var(--bg2), var(--bg3));
+    border-bottom: 1px solid rgba(201,168,76,.18);
+    padding: 40px 60px 32px;
+    position: relative;
+    overflow: hidden;
+  }
+  header::after { content:'</> '; position:absolute; right:50px; top:50%; transform:translateY(-50%); font-family:'Source Code Pro',monospace; font-size:140px; opacity:.025; color:var(--gold); pointer-events:none; }
+  .header-eyebrow { font-family:'Source Code Pro',monospace; font-size:10px; letter-spacing:4px; color:var(--gold-d); text-transform:uppercase; margin-bottom:10px; }
+  header h1 { font-family:'Cinzel',serif; font-size:32px; font-weight:700; color:var(--gold); margin-bottom:4px; }
+  header h2 { font-family:'Cinzel',serif; font-size:16px; font-weight:400; color:var(--text-d); margin-bottom:24px; }
+  .header-tags { display:flex; gap:10px; flex-wrap:wrap; }
+  .tag { font-family:'Source Code Pro',monospace; font-size:11px; padding:3px 10px; border-radius:20px; border:1px solid; }
+  .tag.green { color:var(--green); border-color:rgba(93,191,122,.3); background:rgba(93,191,122,.06); }
+  .tag.blue  { color:var(--blue);  border-color:rgba(90,173,207,.3); background:rgba(90,173,207,.06); }
+  .tag.gold  { color:var(--gold);  border-color:rgba(201,168,76,.3); background:rgba(201,168,76,.06); }
+
+  /* ── NAV TABS ── */
+  .tabs { background:var(--bg2); border-bottom:1px solid rgba(255,255,255,.06); padding:0 60px; display:flex; gap:0; overflow-x:auto; position:sticky; top:0; z-index:50; }
+  .tab { font-family:'Source Code Pro',monospace; font-size:12px; color:var(--text-d); padding:14px 18px; cursor:pointer; border-bottom:2px solid transparent; white-space:nowrap; transition:all .2s; user-select:none; }
+  .tab:hover { color:var(--text); }
+  .tab.active { color:var(--gold-l); border-bottom-color:var(--gold); }
+
+  /* ── CONTENT ── */
+  .content { max-width:1100px; margin:0 auto; padding:40px 60px; }
+
+  /* ── SECTION ── */
+  .section { margin-bottom:48px; }
+  .section-title { font-family:'Cinzel',serif; font-size:18px; font-weight:700; color:var(--gold-l); margin-bottom:6px; display:flex; align-items:center; gap:12px; }
+  .section-title .badge { font-family:'Source Code Pro',monospace; font-size:10px; background:rgba(201,168,76,.1); border:1px solid rgba(201,168,76,.25); color:var(--gold-d); padding:2px 8px; border-radius:4px; }
+  .section-sub { font-size:13px; color:var(--text-d); margin-bottom:20px; max-width:660px; line-height:1.7; }
+
+  /* ── ALERT ── */
+  .alert { display:flex; gap:10px; padding:12px 16px; border-radius:6px; margin:14px 0; font-size:13px; line-height:1.6; }
+  .alert.info { background:rgba(90,173,207,.08); border:1px solid rgba(90,173,207,.25); color:var(--blue); }
+  .alert.warn { background:rgba(207,96,96,.08); border:1px solid rgba(207,96,96,.25); color:#e8a0a0; }
+  .alert.success { background:rgba(93,191,122,.08); border:1px solid rgba(93,191,122,.25); color:var(--green); }
+
+  /* ── CODE BLOCK ── */
+  .code-wrap {
+    background: var(--bg2);
+    border: 1px solid rgba(255,255,255,.07);
+    border-radius: 8px;
+    overflow: hidden;
+    margin: 14px 0;
+  }
+  .code-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 16px;
+    background: var(--bg3);
+    border-bottom: 1px solid rgba(255,255,255,.06);
+  }
+  .code-filename { font-family:'Source Code Pro',monospace; font-size:12px; color:var(--gold); display:flex; align-items:center; gap:8px; }
+  .code-filename .dot { width:8px; height:8px; border-radius:50%; }
+  .dot-r { background:#cf6060; }
+  .dot-y { background:#c9a84c; }
+  .dot-g { background:#5dbf7a; }
+  .copy-btn { font-family:'Source Code Pro',monospace; font-size:10px; color:var(--text-d); background:none; border:1px solid rgba(255,255,255,.1); border-radius:4px; padding:3px 10px; cursor:pointer; transition:all .2s; }
+  .copy-btn:hover { color:var(--green); border-color:var(--green); }
+  .copy-btn.copied { color:var(--green); border-color:var(--green); }
+
+  pre {
+    padding: 20px;
+    overflow-x: auto;
+    font-family: 'Source Code Pro', monospace;
+    font-size: 13px;
+    line-height: 1.7;
+    tab-size: 4;
+  }
+
+  /* ── SYNTAX HIGHLIGHTING ── */
+  .kw  { color: var(--purple); }
+  .fn  { color: var(--blue); }
+  .str { color: var(--green); }
+  .num { color: var(--orange); }
+  .cm  { color: var(--comment); font-style:italic; }
+  .op  { color: var(--gold-d); }
+  .var { color: var(--text); }
+  .cls { color: var(--gold-l); }
+  .img { color: var(--orange); }
+
+  /* ── STATIONS GRID ── */
+  .stations { display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); gap:16px; margin:20px 0; }
+  .station-card {
+    background: var(--bg2);
+    border: 1px solid rgba(255,255,255,.07);
+    border-radius: 8px;
+    overflow: hidden;
+    transition: border-color .2s;
+  }
+  .station-card:hover { border-color: rgba(201,168,76,.25); }
+  .station-card-header {
+    background: var(--bg3);
+    padding: 12px 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    border-bottom: 1px solid rgba(255,255,255,.05);
+  }
+  .station-canal { font-family:'Source Code Pro',monospace; font-size:11px; color:var(--gold); background:rgba(201,168,76,.1); border:1px solid rgba(201,168,76,.2); border-radius:4px; padding:2px 8px; }
+  .station-letra { font-family:'Cinzel',serif; font-size:20px; font-weight:700; color:var(--gold-l); }
+  .station-runa  { font-size:16px; color:var(--gold-d); margin-left:auto; }
+  .station-local { font-size:11px; color:var(--text-d); font-style:italic; margin-left:4px; }
+  .station-body { padding:14px 16px; display:flex; gap:14px; align-items:flex-start; }
+  .station-led-wrap { flex-shrink:0; }
+  .station-info { flex:1; }
+  .station-filename { font-family:'Source Code Pro',monospace; font-size:11px; color:var(--blue); margin-bottom:6px; }
+  .station-image-str { font-family:'Source Code Pro',monospace; font-size:10px; color:var(--text-d); word-break:break-all; line-height:1.6; }
+
+  /* ── LED GRID ── */
+  .led-grid { display:inline-grid; grid-template-columns:repeat(5,1fr); gap:2px; padding:5px; background:#060810; border-radius:4px; border:1px solid rgba(255,255,255,.07); }
+  .led-px { border-radius:2px; background:var(--led-off); }
+  .led-px.on { background:var(--led-on); box-shadow:0 0 4px rgba(245,230,66,.65); }
+
+  /* ── FLOW DIAGRAM ── */
+  .flow { display:flex; gap:0; align-items:center; margin:20px 0; flex-wrap:wrap; }
+  .flow-step { background:var(--bg3); border:1px solid rgba(255,255,255,.08); border-radius:6px; padding:10px 14px; font-size:12px; text-align:center; min-width:100px; }
+  .flow-step .step-label { font-family:'Source Code Pro',monospace; font-size:9px; color:var(--text-d); letter-spacing:2px; text-transform:uppercase; margin-bottom:4px; }
+  .flow-step .step-val { font-weight:700; color:var(--text); }
+  .flow-arrow { color:var(--gold-d); font-size:18px; padding:0 8px; }
+
+  /* ── CANAL TABLE ── */
+  .canal-table { width:100%; border-collapse:collapse; margin:16px 0; }
+  .canal-table th, .canal-table td { padding:9px 14px; text-align:left; font-size:13px; border-bottom:1px solid rgba(255,255,255,.05); }
+  .canal-table th { font-family:'Source Code Pro',monospace; font-size:10px; letter-spacing:2px; text-transform:uppercase; color:var(--gold-d); background:var(--bg3); }
+  .canal-table td { color:var(--text); }
+  .canal-table tr:hover td { background:rgba(255,255,255,.02); }
+  .mono { font-family:'Source Code Pro',monospace; font-size:12px; color:var(--gold); }
+
+  /* ── TIPS ── */
+  .tips { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin:16px 0; }
+  .tip { background:var(--bg3); border:1px solid rgba(255,255,255,.06); border-radius:6px; padding:14px 16px; }
+  .tip-title { font-size:12px; font-weight:700; color:var(--text); margin-bottom:5px; display:flex; align-items:center; gap:7px; }
+  .tip-body { font-size:12px; color:var(--text-d); line-height:1.6; }
+
+  /* ── SCROLL ── */
+  ::-webkit-scrollbar { width:5px; height:5px; }
+  ::-webkit-scrollbar-track { background:var(--bg2); }
+  ::-webkit-scrollbar-thumb { background:var(--bg5); border-radius:3px; }
+  ::-webkit-scrollbar-thumb:hover { background:var(--gold-d); }
+
+  .hidden { display:none; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-eyebrow">Documentação Técnica · micro:bit MicroPython</div>
+  <h1>CÓDIGO micro:bit</h1>
+  <h2>O Legado do Lidador</h2>
+  <div class="header-tags">
+    <span class="tag green">MicroPython</span>
+    <span class="tag blue">micro:bit V2</span>
+    <span class="tag gold">6 Transmissores + 1 Recetor</span>
+  </div>
+</header>
+
+<div class="tabs">
+  <div class="tab active" onclick="showTab('visao')">Visão Geral</div>
+  <div class="tab" onclick="showTab('recetor')">Recetor</div>
+  <div class="tab" onclick="showTab('transmissores')">Transmissores</div>
+  <div class="tab" onclick="showTab('flash')">Como Carregar</div>
+  <div class="tab" onclick="showTab('teste')">Testar & Debug</div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     TAB: VISÃO GERAL
+══════════════════════════════════════════════════════════ -->
+<div id="tab-visao" class="content">
+
+  <div class="section">
+    <div class="section-title">Arquitetura do Sistema</div>
+    <div class="section-sub">O sistema usa o rádio interno do micro:bit. Cada transmissor emite continuamente a sua letra num grupo fixo. O recetor varre os grupos um a um — quando está no grupo certo e perto do transmissor, recebe a mensagem e mostra o símbolo.</div>
+
+    <div class="flow">
+      <div class="flow-step"><div class="step-label">Transmissor</div><div class="step-val">Emite letra<br>cada 1s</div></div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step"><div class="step-label">Rádio</div><div class="step-val">Grupo fixo<br>power=0</div></div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step"><div class="step-label">Recetor</div><div class="step-val">Escuta<br>grupo ativo</div></div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step"><div class="step-label">Deteta!</div><div class="step-val">Beep +<br>símbolo</div></div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step"><div class="step-label">Participante</div><div class="step-val">Regista letra<br>na folha</div></div>
+    </div>
+
+    <div class="alert info">ℹ️ <strong>power=0</strong> nos transmissores reduz o alcance para ~1–2 metros. Isto é intencional — força os participantes a procurar ativamente e chegar muito perto, como no geocaching real.</div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Tabela de Estações <span class="badge">6 transmissores</span></div>
+    <table class="canal-table">
+      <thead>
+        <tr><th>Estação</th><th>Canal (grupo)</th><th>Letra</th><th>Símbolo</th><th>Ficheiro</th><th>Local sugerido</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>1</td><td class="mono">1</td><td style="font-family:'Cinzel',serif;font-size:16px;color:var(--gold-l)">L</td><td>ᛚ Laguz</td><td class="mono">transmissor_1_L.py</td><td style="color:var(--text-d);font-style:italic">Biblioteca</td></tr>
+        <tr><td>2</td><td class="mono">2</td><td style="font-family:'Cinzel',serif;font-size:16px;color:var(--gold-l)">I</td><td>✳ Asterisco</td><td class="mono">transmissor_2_I.py</td><td style="color:var(--text-d);font-style:italic">Corredor principal</td></tr>
+        <tr><td>3</td><td class="mono">3</td><td style="font-family:'Cinzel',serif;font-size:16px;color:#e8a0a0">D</td><td>ᛞ Dagaz <span style="color:#e8a0a0;font-size:11px">(2× em LIDADOR)</span></td><td class="mono">transmissor_3_D.py</td><td style="color:var(--text-d);font-style:italic">Lab de Ciências</td></tr>
+        <tr><td>4</td><td class="mono">4</td><td style="font-family:'Cinzel',serif;font-size:16px;color:var(--gold-l)">A</td><td>ᚨ Ansuz</td><td class="mono">transmissor_4_A.py</td><td style="color:var(--text-d);font-style:italic">Ginásio</td></tr>
+        <tr><td>5</td><td class="mono">5</td><td style="font-family:'Cinzel',serif;font-size:16px;color:var(--gold-l)">O</td><td>ᛟ Othala</td><td class="mono">transmissor_5_O.py</td><td style="color:var(--text-d);font-style:italic">Cantina</td></tr>
+        <tr><td>6</td><td class="mono">6</td><td style="font-family:'Cinzel',serif;font-size:16px;color:var(--gold-l)">R</td><td># Hash</td><td class="mono">transmissor_6_R.py</td><td style="color:var(--text-d);font-style:italic">Entrada principal</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Padrões LED — Referência Visual</div>
+    <div class="section-sub">Cada símbolo no ecrã 5×5 do micro:bit. Os participantes têm uma carta de referência impressa com estes símbolos.</div>
+    <div class="stations" id="visual-grid"></div>
+  </div>
+
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     TAB: RECETOR
+══════════════════════════════════════════════════════════ -->
+<div id="tab-recetor" class="content hidden">
+
+  <div class="section">
+    <div class="section-title">Recetor <span class="badge">1 por grupo</span></div>
+    <div class="section-sub">Este código corre no micro:bit que cada grupo leva consigo durante a atividade. Os botões A e B percorrem os canais de 1 a 6. Quando o micro:bit está no canal de uma estação próxima, recebe a letra, faz um beep duplo e mostra o símbolo rúnico durante 3 segundos.</div>
+
+    <div class="alert success">✅ Precisas de carregar este código em <strong>2 ou 3 micro:bits</strong> — um por grupo de participantes.</div>
+
+    <div class="code-wrap">
+      <div class="code-header">
+        <div class="code-filename">
+          <span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span>
+          recetor.py
+        </div>
+        <button class="copy-btn" onclick="copyCode('code-recetor', this)">copiar</button>
+      </div>
+      <pre id="code-recetor"><span class="cm"># ============================================================</span>
+<span class="cm">#  RECETOR — Geocaching Digital: O Legado do Lidador</span>
+<span class="cm">#  Escola Secundária da Maia · 20 março 2026</span>
+<span class="cm"># ============================================================</span>
+<span class="cm">#  Botão A  → desce canal (6 → 5 → 4 → 3 → 2 → 1)</span>
+<span class="cm">#  Botão B  → sobe canal  (1 → 2 → 3 → 4 → 5 → 6)</span>
+<span class="cm">#  Quando recebe sinal:</span>
+<span class="cm">#    1. Beep duplo de confirmação</span>
+<span class="cm">#    2. Mostra símbolo rúnico durante 3 segundos</span>
+<span class="cm">#    3. Volta a mostrar o número do canal</span>
+<span class="cm"># ============================================================</span>
+
+<span class="kw">from</span> <span class="cls">microbit</span> <span class="kw">import</span> *
+<span class="kw">import</span> <span class="cls">radio</span>
+<span class="kw">import</span> <span class="cls">music</span>
+
+<span class="cm"># ── Padrões rúnicos (5×5) ──────────────────────────────────</span>
+<span class="cm"># 9 = LED aceso · 0 = LED apagado · ':' = separador de linha</span>
+
+<span class="var">RUNAS</span> <span class="op">=</span> {
+    <span class="str">"L"</span>: <span class="cls">Image</span>(<span class="str">"09000:09000:99900:09090:09000"</span>),  <span class="cm"># ᛚ Laguz</span>
+    <span class="str">"I"</span>: <span class="cls">Image</span>(<span class="str">"09090:00900:99999:00900:09090"</span>),  <span class="cm"># ✳ Asterisco</span>
+    <span class="str">"D"</span>: <span class="cls">Image</span>(<span class="str">"90009:09090:00900:09090:90009"</span>),  <span class="cm"># ᛞ Dagaz</span>
+    <span class="str">"A"</span>: <span class="cls">Image</span>(<span class="str">"00900:00900:09990:90900:00900"</span>),  <span class="cm"># ᚨ Ansuz</span>
+    <span class="str">"O"</span>: <span class="cls">Image</span>(<span class="str">"00900:09090:90009:09090:90009"</span>),  <span class="cm"># ᛟ Othala</span>
+    <span class="str">"R"</span>: <span class="cls">Image</span>(<span class="str">"09090:99999:09090:99999:09090"</span>),  <span class="cm"># # Hash</span>
+}
+
+<span class="cm"># Canal inicial (1–6)</span>
+<span class="var">canal</span> <span class="op">=</span> <span class="num">1</span>
+<span class="cls">radio</span>.<span class="fn">config</span>(group<span class="op">=</span><span class="var">canal</span>, power<span class="op">=</span><span class="num">0</span>)
+<span class="cls">radio</span>.<span class="fn">on</span>()
+
+<span class="kw">def</span> <span class="fn">mostrar_canal</span>():
+    <span class="cls">display</span>.<span class="fn">show</span>(<span class="fn">str</span>(<span class="var">canal</span>))
+
+<span class="kw">def</span> <span class="fn">subir_canal</span>():
+    <span class="kw">global</span> <span class="var">canal</span>
+    <span class="kw">if</span> <span class="var">canal</span> <span class="op">&lt;</span> <span class="num">6</span>:
+        <span class="var">canal</span> <span class="op">+=</span> <span class="num">1</span>
+        <span class="cls">radio</span>.<span class="fn">config</span>(group<span class="op">=</span><span class="var">canal</span>)
+        <span class="fn">mostrar_canal</span>()
+
+<span class="kw">def</span> <span class="fn">descer_canal</span>():
+    <span class="kw">global</span> <span class="var">canal</span>
+    <span class="kw">if</span> <span class="var">canal</span> <span class="op">&gt;</span> <span class="num">1</span>:
+        <span class="var">canal</span> <span class="op">-=</span> <span class="num">1</span>
+        <span class="cls">radio</span>.<span class="fn">config</span>(group<span class="op">=</span><span class="var">canal</span>)
+        <span class="fn">mostrar_canal</span>()
+
+<span class="cm"># Mostrar canal inicial ao ligar</span>
+<span class="fn">mostrar_canal</span>()
+
+<span class="cm"># ── Loop principal ──────────────────────────────────────────</span>
+<span class="kw">while</span> <span class="cls">True</span>:
+
+    <span class="kw">if</span> <span class="cls">button_a</span>.<span class="fn">was_pressed</span>():
+        <span class="fn">descer_canal</span>()
+
+    <span class="kw">if</span> <span class="cls">button_b</span>.<span class="fn">was_pressed</span>():
+        <span class="fn">subir_canal</span>()
+
+    <span class="var">msg</span> <span class="op">=</span> <span class="cls">radio</span>.<span class="fn">receive</span>()
+    <span class="kw">if</span> <span class="var">msg</span> <span class="kw">and</span> <span class="var">msg</span> <span class="kw">in</span> <span class="var">RUNAS</span>:
+        <span class="cm"># Beep duplo de confirmação</span>
+        <span class="cls">music</span>.<span class="fn">pitch</span>(<span class="num">880</span>,  duration<span class="op">=</span><span class="num">150</span>, wait<span class="op">=</span><span class="cls">True</span>)
+        <span class="cls">sleep</span>(<span class="num">60</span>)
+        <span class="cls">music</span>.<span class="fn">pitch</span>(<span class="num">1320</span>, duration<span class="op">=</span><span class="num">250</span>, wait<span class="op">=</span><span class="cls">True</span>)
+
+        <span class="cm"># Mostrar símbolo rúnico 3 segundos</span>
+        <span class="cls">display</span>.<span class="fn">show</span>(<span class="var">RUNAS</span>[<span class="var">msg</span>])
+        <span class="fn">sleep</span>(<span class="num">3000</span>)
+
+        <span class="cm"># Voltar ao número do canal</span>
+        <span class="fn">mostrar_canal</span>()
+
+    <span class="fn">sleep</span>(<span class="num">50</span>)</pre>
+    </div>
+
+    <div class="tips">
+      <div class="tip">
+        <div class="tip-title">💡 Canais 1 a 6</div>
+        <div class="tip-body">O ecrã mostra sempre o canal atual (1–6). Os participantes navegam com A (descer) e B (subir) até encontrarem sinal.</div>
+      </div>
+      <div class="tip">
+        <div class="tip-title">🔔 Beep duplo</div>
+        <div class="tip-body">O micro:bit emite dois tons (880 Hz + 1320 Hz) quando deteta sinal — confirmação sonora inconfundível mesmo em ambiente barulhento.</div>
+      </div>
+      <div class="tip">
+        <div class="tip-title">⏱️ 3 segundos de exibição</div>
+        <div class="tip-body">O símbolo fica visível 3s — tempo suficiente para o participante ver, consultar a carta e anotar a letra, sem ser excessivo.</div>
+      </div>
+      <div class="tip">
+        <div class="tip-title">🔄 Retoma o canal</div>
+        <div class="tip-body">Após mostrar o símbolo, o recetor retoma automaticamente a escuta no mesmo canal — o participante pode continuar sem reiniciar nada.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     TAB: TRANSMISSORES
+══════════════════════════════════════════════════════════ -->
+<div id="tab-transmissores" class="content hidden">
+
+  <div class="section">
+    <div class="section-title">Transmissores <span class="badge">6 ficheiros</span></div>
+    <div class="section-sub">Cada transmissor é programado uma vez e depois escondido. Não precisa de interação — liga-se e fica a emitir em loop. Abaixo estão os 6 códigos, prontos a copiar para o MakeCode Python.</div>
+    <div class="alert warn">⚠️ Cada transmissor tem um <strong>canal diferente (1–6)</strong>. Certifica-te que programas o ficheiro certo em cada micro:bit antes de os esconder!</div>
+    <div id="transmissores-container"></div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     TAB: COMO CARREGAR
+══════════════════════════════════════════════════════════ -->
+<div id="tab-flash" class="content hidden">
+
+  <div class="section">
+    <div class="section-title">Como Carregar o Código</div>
+    <div class="section-sub">O método mais simples é usar o editor online MakeCode. Não é preciso instalar nada.</div>
+
+    <div class="alert info">🌐 Editor online: <strong>python.microbit.org</strong> — funciona em qualquer browser, incluindo Chrome e Firefox.</div>
+
+    <ol style="list-style:none;counter-reset:s;padding:0;max-width:640px">
+      <li style="counter-increment:s;padding:10px 0 10px 36px;position:relative;font-size:14px;border-bottom:1px solid rgba(255,255,255,.05)">
+        <span style="position:absolute;left:0;top:10px;width:24px;height:24px;background:var(--gold-d);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--bg);font-family:'Source Code Pro',monospace">1</span>
+        Abrir <strong style="color:var(--blue)">python.microbit.org</strong> no browser
+      </li>
+      <li style="counter-increment:s;padding:10px 0 10px 36px;position:relative;font-size:14px;border-bottom:1px solid rgba(255,255,255,.05)">
+        <span style="position:absolute;left:0;top:10px;width:24px;height:24px;background:var(--gold-d);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--bg);font-family:'Source Code Pro',monospace">2</span>
+        Copiar o código do transmissor pretendido (separador <em>Transmissores</em>) e colar no editor
+      </li>
+      <li style="counter-increment:s;padding:10px 0 10px 36px;position:relative;font-size:14px;border-bottom:1px solid rgba(255,255,255,.05)">
+        <span style="position:absolute;left:0;top:10px;width:24px;height:24px;background:var(--gold-d);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--bg);font-family:'Source Code Pro',monospace">3</span>
+        Ligar o micro:bit ao PC via cabo USB
+      </li>
+      <li style="counter-increment:s;padding:10px 0 10px 36px;position:relative;font-size:14px;border-bottom:1px solid rgba(255,255,255,.05)">
+        <span style="position:absolute;left:0;top:10px;width:24px;height:24px;background:var(--gold-d);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--bg);font-family:'Source Code Pro',monospace">4</span>
+        Clicar em <strong>Connect</strong> e selecionar o micro:bit
+      </li>
+      <li style="counter-increment:s;padding:10px 0 10px 36px;position:relative;font-size:14px;border-bottom:1px solid rgba(255,255,255,.05)">
+        <span style="position:absolute;left:0;top:10px;width:24px;height:24px;background:var(--gold-d);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--bg);font-family:'Source Code Pro',monospace">5</span>
+        Clicar em <strong>Flash</strong> — o LED amarelo no micro:bit pisca durante a transferência
+      </li>
+      <li style="counter-increment:s;padding:10px 0 10px 36px;position:relative;font-size:14px">
+        <span style="position:absolute;left:0;top:10px;width:24px;height:24px;background:var(--gold-d);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--bg);font-family:'Source Code Pro',monospace">6</span>
+        Quando terminar, o micro:bit reinicia automaticamente e começa a emitir — verifica que o símbolo aparece no ecrã
+      </li>
+    </ol>
+
+    <div class="alert success" style="margin-top:20px">✅ <strong>Dica:</strong> Etiqueta cada micro:bit com fita adesiva e caneta após programar — escreve o canal e a letra (ex: "C3 · D"). Evita confusões na hora de esconder.</div>
+
+    <div class="tips" style="margin-top:20px">
+      <div class="tip">
+        <div class="tip-title">🔋 Autonomia das pilhas</div>
+        <div class="tip-body">Com power=0 e emissão a cada 1s, cada transmissor dura facilmente 4–6 horas com pilhas AAA novas. Para segurança, usar pilhas novas no dia.</div>
+      </div>
+      <div class="tip">
+        <div class="tip-title">📡 Aumentar alcance (se necessário)</div>
+        <div class="tip-body">Se o espaço for muito grande, alterar <code style="font-family:'Source Code Pro',monospace;color:var(--gold)">power=0</code> para <code style="font-family:'Source Code Pro',monospace;color:var(--gold)">power=3</code> no transmissor aumenta o alcance para ~10m.</div>
+      </div>
+      <div class="tip">
+        <div class="tip-title">🔁 Reiniciar transmissor</div>
+        <div class="tip-body">Se um transmissor parecer ter parado, pressionar o botão de reset na parte de trás do micro:bit (pequeno botão junto ao USB).</div>
+      </div>
+      <div class="tip">
+        <div class="tip-title">💻 Alternativa: offline</div>
+        <div class="tip-body">Podes também usar o <strong>Mu Editor</strong> (instalado) para carregar o código via ficheiro .py sem necessitar de internet.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     TAB: TESTAR & DEBUG
+══════════════════════════════════════════════════════════ -->
+<div id="tab-teste" class="content hidden">
+
+  <div class="section">
+    <div class="section-title">Testar o Sistema</div>
+    <div class="section-sub">Passos para verificar que tudo funciona antes de esconder os transmissores.</div>
+
+    <div class="code-wrap">
+      <div class="code-header">
+        <div class="code-filename"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span>Protocolo de teste (1h antes da atividade)</div>
+      </div>
+      <pre style="color:var(--text)">
+ 1. Ligar TODOS os transmissores e verificar que cada um
+    mostra o símbolo correto no ecrã.
+
+ 2. Com um recetor, navegar canal a canal (B para subir):
+    Canal 1 → deve receber "L" (símbolo Laguz)
+    Canal 2 → deve receber "I" (símbolo Asterisco)
+    Canal 3 → deve receber "D" (símbolo Dagaz)
+    Canal 4 → deve receber "A" (símbolo Ansuz)
+    Canal 5 → deve receber "O" (símbolo Othala)
+    Canal 6 → deve receber "R" (símbolo Hash)
+
+ 3. Em cada canal, verificar que o beep ocorre
+    e que o símbolo é exibido corretamente 3 segundos.
+
+ 4. Testar a distância: afastar-se do transmissor até
+    deixar de receber — deve ser ~1-2m com power=0.
+
+ 5. Esconder os transmissores. Após esconder, repetir
+    o teste de rececão no local exato do esconderijo.
+      </pre>
+    </div>
+
+    <div class="section-title" style="margin-top:32px">Problemas Comuns</div>
+
+    <table class="canal-table" style="margin-top:14px">
+      <thead><tr><th>Problema</th><th>Causa provável</th><th>Solução</th></tr></thead>
+      <tbody>
+        <tr>
+          <td>Recetor não recebe nada no canal X</td>
+          <td>Transmissor do canal X desligado ou com pilhas fracas</td>
+          <td>Verificar pilhas; reiniciar com botão de reset</td>
+        </tr>
+        <tr>
+          <td>Símbolo errado aparece</td>
+          <td>Transmissor programado com código errado</td>
+          <td>Verificar CANAL e LETRA no início do ficheiro; reprogramar</td>
+        </tr>
+        <tr>
+          <td>Recetor recebe sinal do canal errado</td>
+          <td>Dois transmissores com o mesmo grupo</td>
+          <td>Verificar que cada transmissor tem CANAL único (1–6)</td>
+        </tr>
+        <tr>
+          <td>Alcance demasiado curto (&lt;50cm)</td>
+          <td>power=0 é demasiado restritivo no espaço</td>
+          <td>Alterar para <span class="mono">power=1</span> ou <span class="mono">power=2</span></td>
+        </tr>
+        <tr>
+          <td>Alcance demasiado longo (&gt;5m)</td>
+          <td>power muito alto, transmissor em local aberto</td>
+          <td>Manter <span class="mono">power=0</span>; colocar o transmissor dentro de uma caixa</td>
+        </tr>
+        <tr>
+          <td>Beep não funciona</td>
+          <td>micro:bit V1 sem altifalante integrado</td>
+          <td>Usar micro:bit V2, ou remover as linhas <span class="mono">music.pitch()</span> (funciona sem som)</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+/* ── PADRÕES RÚNICOS ── */
+const PATTERNS = {
+  L: [0,1,0,0,0, 0,1,0,0,0, 1,1,1,0,0, 0,1,0,1,0, 0,1,0,0,0],
+  I: [0,1,0,1,0, 0,0,1,0,0, 1,1,1,1,1, 0,0,1,0,0, 0,1,0,1,0],
+  D: [1,0,0,0,1, 0,1,0,1,0, 0,0,1,0,0, 0,1,0,1,0, 1,0,0,0,1],
+  A: [0,0,1,0,0, 0,0,1,0,0, 0,1,1,1,0, 1,0,1,0,0, 0,0,1,0,0],
+  O: [0,0,1,0,0, 0,1,0,1,0, 1,0,0,0,1, 0,1,0,1,0, 1,0,0,0,1],
+  R: [0,1,0,1,0, 1,1,1,1,1, 0,1,0,1,0, 1,1,1,1,1, 0,1,0,1,0]
+};
+
+const ESTACOES = [
+  {canal:1, letra:"L", runa:"ᛚ Laguz",    local:"Biblioteca",        file:"transmissor_1_L.py"},
+  {canal:2, letra:"I", runa:"✳ Asterisco", local:"Corredor principal", file:"transmissor_2_I.py"},
+  {canal:3, letra:"D", runa:"ᛞ Dagaz",    local:"Lab de Ciências",    file:"transmissor_3_D.py", duplo:true},
+  {canal:4, letra:"A", runa:"ᚨ Ansuz",    local:"Ginásio",            file:"transmissor_4_A.py"},
+  {canal:5, letra:"O", runa:"ᛟ Othala",   local:"Cantina",            file:"transmissor_5_O.py"},
+  {canal:6, letra:"R", runa:"# Hash",     local:"Entrada principal",  file:"transmissor_6_R.py"},
+];
+
+const TX_IMAGES = {
+  "L": "09000:09000:99900:09090:09000",
+  "I": "09090:00900:99999:00900:09090",
+  "D": "90009:09090:00900:09090:90009",
+  "A": "00900:00900:09990:90900:00900",
+  "O": "00900:09090:90009:09090:90009",
+  "R": "09090:99999:09090:99999:09090"
+};
+
+const TX_RUNA_COMMENT = {
+  "L": "ᛚ Laguz",
+  "I": "✳ Asterisco",
+  "D": "ᛞ Dagaz",
+  "A": "ᚨ Ansuz",
+  "O": "ᛟ Othala",
+  "R": "# Hash"
+};
+
+const TX_LOCAL = {
+  "L":"Biblioteca", "I":"Corredor principal",
+  "D":"Lab de Ciências", "A":"Ginásio",
+  "O":"Cantina", "R":"Entrada principal"
+};
+
+function makeLED(letter, px) {
+  const grid = document.createElement('div');
+  grid.className = 'led-grid';
+  grid.style.gridTemplateColumns = `repeat(5,${px}px)`;
+  PATTERNS[letter].forEach(b => {
+    const d = document.createElement('div');
+    d.className = 'led-px' + (b ? ' on' : '');
+    d.style.width = d.style.height = px + 'px';
+    grid.appendChild(d);
+  });
+  return grid;
+}
+
+/* ── BUILD VISUAL GRID ── */
+const vg = document.getElementById('visual-grid');
+ESTACOES.forEach(e => {
+  const card = document.createElement('div');
+  card.className = 'station-card';
+  const hdr = document.createElement('div');
+  hdr.className = 'station-card-header';
+  hdr.innerHTML = `
+    <span class="station-canal">Canal ${e.canal}</span>
+    <span class="station-letra" ${e.duplo ? 'style="color:#e8a0a0"' : ''}>${e.letra}</span>
+    <span class="station-local">${e.local}</span>
+    <span class="station-runa">${e.runa}</span>
+  `;
+  const body = document.createElement('div');
+  body.className = 'station-body';
+  const ledWrap = document.createElement('div');
+  ledWrap.className = 'station-led-wrap';
+  ledWrap.appendChild(makeLED(e.letra, 14));
+  const info = document.createElement('div');
+  info.className = 'station-info';
+  info.innerHTML = `
+    <div class="station-filename">${e.file}</div>
+    <div class="station-image-str">Image("${TX_IMAGES[e.letra]}")</div>
+    ${e.duplo ? '<div style="margin-top:6px;font-size:11px;color:#e8a0a0;font-style:italic">⚠️ Preenche 2 posições em LIDADOR</div>' : ''}
+  `;
+  body.appendChild(ledWrap);
+  body.appendChild(info);
+  card.appendChild(hdr);
+  card.appendChild(body);
+  vg.appendChild(card);
+});
+
+/* ── BUILD TRANSMISSORES ── */
+const tc = document.getElementById('transmissores-container');
+ESTACOES.forEach((e, idx) => {
+  const cid = 'tx-code-' + e.canal;
+  const imagem = TX_IMAGES[e.letra];
+  const runaC  = TX_RUNA_COMMENT[e.letra];
+  const local  = TX_LOCAL[e.letra];
+  const isD    = e.duplo;
+
+  const html = `
+<div style="margin-bottom:28px">
+  <div style="display:flex;align-items:center;gap:12px;margin-bottom:10px">
+    ${makeLED(e.letra, 11).outerHTML}
+    <div>
+      <div style="font-family:'Cinzel',serif;font-size:16px;color:${isD?'#e8a0a0':'var(--gold-l)'}">Estação ${e.canal} · Letra ${e.letra} · ${e.runa}</div>
+      <div style="font-size:12px;color:var(--text-d);font-style:italic">Local: ${local}${isD ? ' · <span style="color:#e8a0a0">D aparece 2× em LIDADOR</span>':''}</div>
+    </div>
+  </div>
+  <div class="code-wrap">
+    <div class="code-header">
+      <div class="code-filename">
+        <span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span>
+        ${e.file}
+      </div>
+      <button class="copy-btn" onclick="copyCode('${cid}', this)">copiar</button>
+    </div>
+    <pre id="${cid}"><span class="cm"># ============================================================</span>
+<span class="cm">#  TRANSMISSOR — Estação ${e.canal} · Canal ${e.canal} · Letra ${e.letra} · ${runaC}</span>
+<span class="cm">#  Local: ${local}</span>
+<span class="cm"># ============================================================</span>
+<span class="cm">#  Ligar e esconder — não necessita de interação</span>
+<span class="cm">#  power=0 → alcance ~1-2m</span>
+<span class="cm"># ============================================================</span>
+
+<span class="kw">from</span> <span class="cls">microbit</span> <span class="kw">import</span> *
+<span class="kw">import</span> <span class="cls">radio</span>
+
+<span class="var">CANAL</span>  <span class="op">=</span> <span class="num">${e.canal}</span>
+<span class="var">LETRA</span>  <span class="op">=</span> <span class="str">"${e.letra}"</span>
+<span class="var">RUNA</span>   <span class="op">=</span> <span class="cls">Image</span>(<span class="str">"${imagem}"</span>)  <span class="cm"># ${runaC}</span>
+
+<span class="cls">radio</span>.<span class="fn">config</span>(group<span class="op">=</span><span class="var">CANAL</span>, power<span class="op">=</span><span class="num">0</span>)
+<span class="cls">radio</span>.<span class="fn">on</span>()
+
+<span class="cls">display</span>.<span class="fn">show</span>(<span class="var">RUNA</span>)
+
+<span class="kw">while</span> <span class="cls">True</span>:
+    <span class="cls">radio</span>.<span class="fn">send</span>(<span class="var">LETRA</span>)
+    <span class="fn">sleep</span>(<span class="num">1000</span>)</pre>
+  </div>
+</div>`;
+  tc.innerHTML += html;
+});
+
+/* ── TABS ── */
+function showTab(name) {
+  document.querySelectorAll('[id^="tab-"]').forEach(el => el.classList.add('hidden'));
+  document.querySelectorAll('.tab').forEach(el => el.classList.remove('active'));
+  document.getElementById('tab-' + name).classList.remove('hidden');
+  event.target.classList.add('active');
+}
+
+/* ── COPY ── */
+function copyCode(id, btn) {
+  const el = document.getElementById(id);
+  const text = el.innerText || el.textContent;
+  navigator.clipboard.writeText(text).then(() => {
+    btn.textContent = '✓ copiado!';
+    btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = 'copiar'; btn.classList.remove('copied'); }, 2000);
+  });
+}
+</script>
+</body>
+</html>
