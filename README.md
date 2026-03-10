@@ -25,7 +25,7 @@ Tecnologia:    MicroPython · rádio interno · HTML/CSS/JS
 ## Ficheiros
 
 ```
-geocaching-lidador/
+geocaching-challenge/
 │
 ├── guiao_dinamizador.html   — guião completo para o dinamizador
 │                              (sidebar navegável, checklist interativa,
