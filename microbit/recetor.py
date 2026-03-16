@@ -1,13 +1,14 @@
-# ============================================================
+# ==================================================================
 #  RECETOR — Geocaching Digital: O Legado do Lidador
-#  Escola Secundária da Maia · 20 março 2026
-# ============================================================
+#  Centro de Inovação Carlos Fiolhais · David Marques · Março 2026
+# ==================================================================
 #  Botão A  → desce canal (1 → 2 → 3 → 4 → 5 → 6)
 #  Botão B  → sobe canal  (6 → 5 → 4 → 3 → 2 → 1)
 #  Quando recebe sinal:
-#    1. Beep
-#    2. Mostra símbolo rúnico 3 segundos
-#    3. Volta a mostrar número do canal
+#    1. Beep duplo
+#    2. Mostra símbolo rúnico 2.5 segundos
+#    3. Mostra a letra correspondente 2.5 segundos
+#    4. Volta a mostrar número do canal
 # ============================================================
 
 from microbit import *
@@ -15,8 +16,7 @@ import radio
 import music
 
 # ── Padrões rúnicos (5×5) ──────────────────────────────────
-# Cada string: 5 linhas × 5 dígitos (9=aceso, 0=apagado)
-# separadas por ':'
+# 9 = LED aceso · 0 = LED apagado · ':' = separador de linha
 
 RUNAS = {
     "L": Image("09000:09000:99900:09090:09000"),  # ᛚ Laguz
@@ -27,12 +27,15 @@ RUNAS = {
     "R": Image("09090:99999:09090:99999:09090"),  # # Hash
 }
 
-# Mapeamento canal → letra
-CANAL_LETRA = {1: "L", 2: "I", 3: "D", 4: "A", 5: "O", 6: "R"}
+# ── Alcance do rádio ───────────────────────────────────────
+# power: 0=mínimo (~1m), 1=~10m, 2=~20m, ... 7=máximo
+# Ajustar conforme o espaço — 2 é um bom compromisso
+
+POWER = 5
 
 # Canal inicial
 canal = 1
-radio.config(group=canal, power=0)
+radio.config(group=canal, power=POWER)
 radio.on()
 
 def mostrar_canal():
@@ -52,7 +55,10 @@ def descer_canal():
         radio.config(group=canal)
         mostrar_canal()
 
-# Mostrar canal inicial
+# Volume máximo no altifalante integrado
+set_volume(255)
+
+# Mostrar canal inicial ao ligar
 mostrar_canal()
 
 # ── Loop principal ──────────────────────────────────────────
@@ -69,16 +75,17 @@ while True:
     # Verificar se há sinal de uma estação
     msg = radio.receive()
     if msg and msg in RUNAS:
-        # Beep de confirmação
-        music.pitch(880, duration=200, wait=False)
-        sleep(100)
-        music.pitch(1100, duration=300, wait=True)
 
-        # Mostrar símbolo rúnico
+        # 1. Beep duplo de confirmação
+        music.pitch(880,  duration=150, wait=True)
+        sleep(60)
+        music.pitch(1320, duration=250, wait=True)
+
+        # 2. Símbolo rúnico — 2.5 segundos
         display.show(RUNAS[msg])
-        sleep(3000)
+        sleep(2500)
 
-        # Voltar a mostrar número do canal
+        # 3. Voltar ao número do canal
         mostrar_canal()
 
     sleep(50)

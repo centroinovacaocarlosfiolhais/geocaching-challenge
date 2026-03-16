@@ -5,7 +5,7 @@
 # ============================================================
 #  Este micro:bit esta escondido e emite continuamente.
 #  Nao necessita de interacao — ligar e esconder.
-#  power=0 → alcance ~1-2m (obriga participantes a chegar perto)
+#  power=7 → alcance maximo (obriga participantes a chegar perto)
 # ============================================================
 
 from microbit import *
@@ -17,7 +17,7 @@ LETRA  = "R"      # letra que esta estacao revela
 RUNA   = Image("09090:99999:09090:99999:09090")
 
 # -- Inicializar radio -------------------------------------
-radio.config(group=CANAL, power=0)   # power=0 = alcance minimo
+radio.config(group=CANAL, power=3)   # power=7 = alcance maximo
 radio.on()
 
 # -- Mostrar simbolo continuamente ------------------------
