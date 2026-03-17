@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="UTF-8">
+<title>Desafio Geocaching — Folha de Decifragem</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Source+Code+Pro:wght@400;600&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
+<style>
+@page { size: A4 portrait; margin: 12mm 14mm; }
+*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+body {
+  width: 210mm;
+  background: #fff;
+  color: #1a1612;
+  font-family: 'Lato', sans-serif;
+  font-weight: 300;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+.page {
+  width: 182mm;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  min-height: 273mm;
+}
+
+/* HEADER */
+.header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  border-bottom: 2.5px solid #1a1612;
+  padding-bottom: 3mm;
+  margin-bottom: 4mm;
+}
+.header-title {
+  font-family: 'Cinzel', serif;
+  font-size: 20pt;
+  font-weight: 900;
+  color: #1a1612;
+  line-height: 1;
+}
+.header-sub {
+  font-family: 'Cinzel', serif;
+  font-size: 9pt;
+  font-weight: 400;
+  color: #5a4e2a;
+  margin-top: 1mm;
+}
+.header-rune {
+  font-size: 38pt;
+  color: #1a1612;
+  opacity: .07;
+  line-height: 1;
+  user-select: none;
+}
+
+/* SECTION LABEL */
+.sec {
+  font-family: 'Source Code Pro', monospace;
+  font-size: 6.5pt;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: #7a6530;
+  border-bottom: 1px solid #d4c8a0;
+  padding-bottom: 1.5mm;
+  margin-bottom: 3mm;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+.sec::before {
+  content: '';
+  display: inline-block;
+  width: 7px; height: 2px;
+  background: #c9a84c;
+  border-radius: 1px;
+}
+
+/* INSTRUCTIONS */
+.instructions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5mm;
+  margin-bottom: 4mm;
+}
+.instr-item {
+  display: flex;
+  gap: 2mm;
+  font-size: 7pt;
+  line-height: 1.5;
+  color: #3a3020;
+}
+.instr-num {
+  font-family: 'Source Code Pro', monospace;
+  font-size: 6.5pt;
+  font-weight: 700;
+  color: #fff;
+  background: #1a1612;
+  border-radius: 50%;
+  width: 12px; height: 12px;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+  margin-top: 0.5mm;
+}
+
+/* CIPHER SLOTS */
+.sec-cipher { margin-bottom: 3mm; }
+.cipher-row {
+  display: flex;
+  gap: 4mm;
+  align-items: flex-end;
+  justify-content: center;
+  margin-bottom: 2mm;
+}
+.cipher-cell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.5mm;
+}
+.cipher-pos {
+  font-family: 'Source Code Pro', monospace;
+  font-size: 6pt;
+  color: #b0a080;
+}
+.cipher-blank {
+  width: 16mm;
+  border-bottom: 2px solid #1a1612;
+  height: 10mm;
+}
+
+/* NOTE */
+.note {
+  font-size: 7pt;
+  color: #7a4a30;
+  font-style: italic;
+  text-align: center;
+  margin: 0 0 3.5mm;
+  padding: 1.5mm 4mm;
+  background: #fdf8f0;
+  border: 1px solid #e8c8a0;
+  border-radius: 2px;
+}
+
+/* SEP */
+.sep { border: none; border-top: 1px dashed #d4c8a0; margin: 3mm 0; }
+
+/* A-Z GRID */
+.az-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 2mm;
+  margin-bottom: 3mm;
+}
+.az-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1mm;
+  padding: 2mm 1mm;
+  border: 1px solid #e0d8c0;
+  border-radius: 2px;
+  background: #fdfcf8;
+}
+.led-sm {
+  display: inline-grid;
+  grid-template-columns: repeat(5, 4px);
+  gap: 1px;
+  padding: 2px;
+  background: #1a1612;
+  border-radius: 1.5px;
+}
+.led-sm .px { width:4px; height:4px; border-radius:.6px; background:#2e2618; }
+.led-sm .px.on { background:#f5e642; }
+.az-letter {
+  font-family: 'Cinzel', serif;
+  font-size: 10.5pt;
+  font-weight: 900;
+  color: #1a1612;
+  line-height: 1;
+}
+
+/* FOOTER */
+.footer {
+  margin-top: auto;
+  padding-top: 3mm;
+  border-top: 1px solid #d4c8a0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.footer-text {
+  font-family: 'Source Code Pro', monospace;
+  font-size: 5.5pt;
+  color: #b0a080;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+/* PRINT BTN */
+.print-btn {
+  position: fixed; bottom: 20px; right: 20px;
+  background: #c9a84c; color: #1a1612;
+  border: none; border-radius: 50%;
+  width: 48px; height: 48px; font-size: 20px;
+  cursor: pointer; box-shadow: 0 4px 16px rgba(201,168,76,.4);
+  transition: transform .2s; z-index: 100;
+}
+.print-btn:hover { transform: scale(1.08); }
+@media print { .print-btn { display:none; } }
+@media screen {
+  body {
+    background: #e0dbd0;
+    display: flex; align-items: flex-start;
+    justify-content: center; padding: 24px; min-height: 100vh;
+  }
+  .page { background:#fff; padding:12mm 14mm; box-shadow:0 4px 40px rgba(0,0,0,.25); }
+}
+</style>
+</head>
+<body>
+<div class="page">
+
+  <div class="header">
+    <div>
+      <div class="header-title">DESAFIO GEOCACHING</div>
+      <div class="header-sub">Folha de Decifragem</div>
+    </div>
+    <div class="header-rune">ᛞ</div>
+  </div>
+
+  <div class="sec">Como decifrar</div>
+  <div class="instructions">
+    <div class="instr-item"><span class="instr-num">1</span><span>Naveguem nos canais 1→6 com os botões <strong>A</strong> e <strong>B</strong> do micro:bit.</span></div>
+    <div class="instr-item"><span class="instr-num">2</span><span>Perto de uma estação: sinal sonoro + símbolo LED + letra no ecrã.</span></div>
+    <div class="instr-item"><span class="instr-num">3</span><span>Localizem o símbolo no alfabeto cifrado e confirmem a letra.</span></div>
+    <div class="instr-item"><span class="instr-num">4</span><span>O número do canal indica a <strong>posição na palavra</strong>: canal 1 → slot 1, canal 2 → slot 2, etc. Há 7 slots e 6 canais — um repete!</span></div>
+  </div>
+
+  <div class="sec sec-cipher">Palavra secreta — 7 letras · preenche cada slot quando encontrares a estação</div>
+  <div class="cipher-row" id="cipher-row"></div>
+  <div class="note">⚠ Há 7 posições mas apenas 6 canais — um canal corresponde a <strong>duas posições diferentes</strong>. Descobre qual quando explorares a escola!</div>
+
+  <hr class="sep">
+
+  <div class="sec">Alfabeto cifrado — A a Z</div>
+  <div class="az-grid" id="az-grid"></div>
+
+  <div class="footer">
+    <span class="footer-text">Centro de Inovação Carlos Fiolhais · Geocaching Digital · 2026</span>
+  </div>
+
+</div>
+<button class="print-btn" onclick="window.print()" title="Imprimir">🖨️</button>
+
+<script>
+const P = {
+  A:[0,0,1,0,0, 0,0,1,0,0, 0,1,1,1,0, 1,0,1,0,0, 0,0,1,0,0],
+  B:[1,1,0,0,0, 1,0,1,0,0, 1,1,0,0,0, 1,0,0,1,0, 1,1,1,0,0],
+  C:[0,0,0,1,1, 0,0,1,0,0, 0,1,0,0,0, 1,0,0,0,0, 1,1,1,1,1],
+  D:[1,0,0,0,1, 0,1,0,1,0, 0,0,1,0,0, 0,1,0,1,0, 1,0,0,0,1],
+  E:[1,0,0,0,1, 0,0,0,1,0, 0,0,1,0,0, 0,1,0,0,0, 1,0,0,0,1],
+  F:[0,1,0,1,0, 1,0,1,0,1, 0,0,1,0,0, 1,0,1,0,1, 0,1,0,1,0],
+  G:[1,0,0,0,0, 0,1,0,0,0, 0,0,1,0,0, 0,0,0,1,0, 1,1,1,1,1],
+  H:[0,0,1,0,0, 0,1,0,1,0, 1,1,1,1,1, 0,1,0,1,0, 0,0,1,0,0],
+  I:[0,1,0,1,0, 0,0,1,0,0, 1,1,1,1,1, 0,0,1,0,0, 0,1,0,1,0],
+  J:[1,1,1,0,0, 0,0,0,1,0, 0,0,1,0,0, 0,1,0,0,0, 1,1,1,1,1],
+  K:[0,1,1,1,0, 0,1,0,0,0, 0,1,1,0,0, 0,1,0,1,0, 0,1,0,0,1],
+  L:[0,1,0,0,0, 0,1,0,0,0, 1,1,1,0,0, 0,1,0,1,0, 0,1,0,0,0],
+  M:[1,0,0,0,1, 1,1,0,1,1, 1,0,1,0,1, 1,0,0,0,1, 1,0,0,0,1],
+  N:[0,1,1,1,0, 1,0,0,0,1, 1,0,0,0,1, 1,0,0,0,1, 0,1,1,1,0],
+  O:[0,0,1,0,0, 0,1,0,1,0, 1,0,0,0,1, 0,1,0,1,0, 1,0,0,0,1],
+  P:[1,1,1,1,1, 0,0,0,0,1, 0,0,0,1,0, 0,0,1,0,0, 0,1,0,0,0],
+  Q:[0,1,0,0,0, 1,0,1,0,0, 0,1,0,1,0, 0,0,1,0,1, 0,0,0,1,0],
+  R:[0,1,0,1,0, 1,1,1,1,1, 0,1,0,1,0, 1,1,1,1,1, 0,1,0,1,0],
+  S:[1,0,0,0,0, 1,0,0,0,0, 1,1,1,1,0, 0,0,0,0,1, 1,1,1,1,1],
+  T:[0,0,0,1,0, 0,0,1,0,0, 1,1,1,0,0, 0,0,1,0,0, 0,0,0,1,0],
+  U:[1,0,0,0,1, 1,0,0,0,1, 1,0,0,0,1, 0,1,0,1,0, 0,0,1,0,0],
+  V:[0,0,0,0,1, 0,0,0,1,0, 1,1,1,0,0, 0,0,0,1,0, 0,0,0,0,1],
+  W:[0,1,1,0,0, 0,0,0,1,0, 1,1,1,1,1, 0,0,0,1,0, 0,1,1,0,0],
+  X:[1,0,0,0,0, 0,1,0,1,0, 0,0,1,0,0, 0,1,0,1,0, 0,0,0,0,1],
+  Y:[1,0,1,0,1, 0,1,0,1,0, 0,0,1,0,0, 0,0,1,0,0, 0,1,1,1,0],
+  Z:[1,0,1,0,0, 0,1,0,0,0, 1,1,1,1,0, 0,0,0,1,0, 0,0,1,0,1],
+};
+
+// Cipher message: [position_label, is_repeat]
+const MSG = [
+  ['C1', false],
+  ['C2', false],
+  ['C3', false],
+  ['C4', false],
+  ['C3', true],
+  ['C5', false],
+  ['C6', false],
+];
+
+function makeLED(letter, cls) {
+  const g = document.createElement('div');
+  g.className = cls;
+  P[letter].forEach(b => {
+    const p = document.createElement('div');
+    p.className = 'px' + (b ? ' on' : '');
+    g.appendChild(p);
+  });
+  return g;
+}
+
+// Cipher slots — numbered blanks only, no symbols
+MSG.forEach(([canal, repeat], i) => {
+  const cell = document.createElement('div');
+  cell.className = 'cipher-cell';
+  const pos = document.createElement('div');
+  pos.className = 'cipher-pos';
+  pos.textContent = i + 1;
+  const blank = document.createElement('div');
+  blank.className = 'cipher-blank';
+  cell.appendChild(pos);
+  cell.appendChild(blank);
+  document.getElementById('cipher-row').appendChild(cell);
+});
+
+// A-Z grid — all LED
+'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('').forEach(l => {
+  const card = document.createElement('div');
+  card.className = 'az-card';
+  card.appendChild(makeLED(l, 'led-sm'));
+  const ltr = document.createElement('div');
+  ltr.className = 'az-letter';
+  ltr.textContent = l;
+  card.appendChild(ltr);
+  document.getElementById('az-grid').appendChild(card);
+});
+</script>
+</body>
+</html>
