@@ -141,6 +141,74 @@ Os símbolos rúnicos são inspirados no alfabeto **Elder Futhark** (séc. II–
 
 ---
 
+## Sprites LED — cópia direta para MicroPython
+
+Todos os 26 caracteres do alfabeto cifrado prontos a usar no micro:bit.
+Formato `Image("linha1:linha2:linha3:linha4:linha5")` — `9` = LED aceso, `0` = apagado.
+
+As 6 letras da cifra estão marcadas com `← CIFRA`.
+
+```python
+# Colar dentro do dicionário RUNAS no recetor, ou usar diretamente
+# com display.show(Image("..."))
+
+SPRITES = {
+    "A": Image("00900:00900:09990:90900:00900"),  # ← CIFRA
+    "B": Image("99000:90900:99000:90090:99900"),
+    "C": Image("00099:00900:09000:90000:99999"),
+    "D": Image("90009:09090:00900:09090:90009"),  # ← CIFRA
+    "E": Image("90009:00090:00900:09000:90009"),
+    "F": Image("09090:90909:00900:90909:09090"),
+    "G": Image("90000:09000:00900:00090:99999"),
+    "H": Image("00900:09090:99999:09090:00900"),
+    "I": Image("09090:00900:99999:00900:09090"),  # ← CIFRA
+    "J": Image("99900:00090:00900:09000:99999"),
+    "K": Image("09990:09000:09900:09090:09009"),
+    "L": Image("09000:09000:99900:09090:09000"),  # ← CIFRA
+    "M": Image("90009:99099:90909:90009:90009"),
+    "N": Image("09990:90009:90009:90009:09990"),
+    "O": Image("00900:09090:90009:09090:90009"),  # ← CIFRA
+    "P": Image("99999:00009:00090:00900:09000"),
+    "Q": Image("09000:90900:09090:00909:00090"),
+    "R": Image("09090:99999:09090:99999:09090"),  # ← CIFRA
+    "S": Image("90000:90000:99990:00009:99999"),
+    "T": Image("00090:00900:99900:00900:00090"),
+    "U": Image("90009:90009:90009:09090:00900"),
+    "V": Image("00009:00090:99900:00090:00009"),
+    "W": Image("09900:00090:99999:00090:09900"),
+    "X": Image("90000:09090:00900:09090:00009"),
+    "Y": Image("90909:09090:00900:00900:09990"),
+    "Z": Image("90900:09000:99990:00090:00909"),
+}
+```
+
+### Visualizar um sprite no micro:bit
+
+```python
+from microbit import *
+
+# Mostrar um símbolo específico
+display.show(Image("09000:09000:99900:09090:09000"))  # L
+
+# Ou a partir do dicionário
+display.show(SPRITES["L"])
+```
+
+### Alterar um sprite
+
+Cada string tem 5 grupos de 5 dígitos separados por `:`, correspondendo às 5 linhas da matriz.
+Cada dígito é o brilho do LED: `0` = apagado, `9` = brilho máximo (valores intermédios são possíveis).
+
+```
+"09000"   →  . █ . . .
+"09000"   →  . █ . . .
+"99900"   →  █ █ █ . .
+"09090"   →  . █ . █ .
+"09000"   →  . █ . . .
+```
+
+---
+
 ## Licença
 
 MIT — livre para adaptar e reutilizar com atribuição.
