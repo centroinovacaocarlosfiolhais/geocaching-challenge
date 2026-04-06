@@ -1,0 +1,683 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TERMINAL // SISTEMA SEGURO</title>
+
+<!-- ══════════════════════════════════════════════════════════
+     CONFIGURAÇÃO — editar aqui para reutilizar noutras atividades
+══════════════════════════════════════════════════════════ -->
+<script id="config" type="application/json">
+{
+  "sistema":    "ARCHIVUM // SISTEMA DE RECUPERAÇÃO DE DADOS",
+  "versao":     "v2.3.1 — 1987",
+  "passwords":  ["LIDADOR", "lidador"],
+  "resposta": [
+    "AUTENTICAÇÃO CONFIRMADA.",
+    "DESENCRIPTANDO ARQUIVO... ████████████████ 100%",
+    "",
+    "MENSAGEM DE SOEIRO MENDES DA MAIA — 1087 d.C.",
+    "─────────────────────────────────────────────",
+    "",
+    "A minha terra não é a que se vê nos mapas.",
+    "É a que se carrega dentro de quem a defende.",
+    "",
+    "O vosso legado foi encontrado.",
+    "Sois agora guardiões do que ficou escondido.",
+    "",
+    "─────────────────────────────────────────────",
+
+    "[ ARQUIVO FECHADO — SESSÃO TERMINADA ]"
+  ],
+  "erro_msgs":    ["ACESSO NEGADO.", "CÓDIGO INVÁLIDO. TENTE NOVAMENTE."],
+  "boot_msgs": [
+    "ARCHIVUM SECURE TERMINAL  //  BIOS v1.4",
+    "RAM: 64K OK",
+    "VERIFICANDO INTEGRIDADE DO ARQUIVO...",
+    "ARQUIVO ENCRIPTADO DETETADO.",
+    "PROTOCOLO DE AUTENTICAÇÃO INICIADO.",
+    ""
+  ],
+  "prompt_label":   "CÓDIGO DE ACESSO",
+  "prompt_grupo":   "NOME DO GRUPO",
+  "storage_key":    "geocaching_resultados"
+}
+</script>
+
+<style>
+  *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+  :root {
+    --green:      #33ff33;
+    --green-dim:  #1a8c1a;
+    --green-glow: rgba(51,255,51,0.18);
+    --green-faint:#0d420d;
+    --bg:         #050905;
+    --amber:      #ffb000;
+    --red-crt:    #ff4444;
+  }
+  html, body { width:100%; height:100%; background:#000; overflow:hidden; }
+  body { display:flex; align-items:center; justify-content:center; font-family:'Courier New',Courier,monospace; flex-direction:column; gap:0; }
+
+  /* ── MONITOR ── */
+  .monitor {
+    position:relative;
+    width:min(860px,96vw);
+    background:#1a1a1a;
+    border-radius:18px 18px 0 0;
+    padding:10px 10px 0;
+    box-shadow:0 0 0 2px #333,0 0 0 5px #222,0 8px 40px rgba(0,0,0,.9),inset 0 1px 0 rgba(255,255,255,.07);
+  }
+  .bezel {
+    background:radial-gradient(ellipse at 50% 0%,#2a2a2a,#111);
+    border-radius:12px 12px 0 0;
+    padding:24px 24px 0;
+    border:1px solid #333;
+    box-shadow:inset 0 2px 4px rgba(0,0,0,.5);
+  }
+  .screen {
+    position:relative;
+    background:var(--bg);
+    border-radius:6px 6px 0 0;
+    overflow:hidden;
+    min-height:420px;
+    max-height:62vh;
+    border:2px solid #111;
+    box-shadow:inset 0 0 80px rgba(0,0,0,.6),inset 0 0 20px var(--green-faint),0 0 20px var(--green-glow),0 0 60px rgba(51,255,51,.04);
+    display:flex;
+    flex-direction:column;
+    animation:flicker 8s infinite;
+  }
+  .screen::before { content:''; position:absolute; inset:0; background:radial-gradient(ellipse 90% 80% at 50% 40%,rgba(51,255,51,.03) 0%,transparent 70%); pointer-events:none; z-index:3; }
+  .screen::after  { content:''; position:absolute; inset:0; background:repeating-linear-gradient(0deg,rgba(0,0,0,.35) 0px,rgba(0,0,0,.35) 1px,transparent 1px,transparent 3px); pointer-events:none; z-index:4; opacity:.4; }
+  .vignette { position:absolute; inset:0; background:radial-gradient(ellipse 100% 100% at 50% 50%,transparent 55%,rgba(0,0,0,.55) 100%); pointer-events:none; z-index:5; }
+  .noise { position:absolute; inset:0; opacity:.025; pointer-events:none; z-index:6; background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"); background-size:128px; }
+
+  /* ── HEADER BAR ── */
+  .term-header {
+    padding:7px 20px;
+    border-bottom:1px solid var(--green-faint);
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    position:relative;
+    z-index:2;
+    flex-shrink:0;
+    gap:16px;
+  }
+  .term-header-sys  { font-size:10px; color:var(--green-dim); letter-spacing:2px; flex-shrink:0; }
+  .term-header-timer {
+    font-size:14px;
+    font-weight:bold;
+    letter-spacing:3px;
+    color:var(--amber);
+    text-shadow:0 0 8px rgba(255,176,0,.4);
+    font-variant-numeric:tabular-nums;
+    flex-shrink:0;
+  }
+  .term-header-timer.stopped { color:var(--green-dim); text-shadow:none; }
+  .term-header-clock { font-size:10px; color:var(--green-dim); font-variant-numeric:tabular-nums; flex-shrink:0; }
+
+  /* ── TERMINAL OUTPUT ── */
+  .terminal {
+    flex:1;
+    padding:16px 20px 10px;
+    overflow-y:auto;
+    display:flex;
+    flex-direction:column;
+    position:relative;
+    z-index:2;
+  }
+  .terminal::-webkit-scrollbar { width:4px; }
+  .terminal::-webkit-scrollbar-track { background:transparent; }
+  .terminal::-webkit-scrollbar-thumb { background:var(--green-dim); border-radius:2px; }
+
+  .line { font-size:clamp(11px,1.4vw,13px); line-height:1.65; color:var(--green); text-shadow:0 0 6px var(--green-glow),0 0 2px var(--green); white-space:pre-wrap; word-break:break-word; min-height:1.65em; letter-spacing:.03em; }
+  .line.dim    { color:var(--green-dim); text-shadow:none; }
+  .line.amber  { color:var(--amber); text-shadow:0 0 6px rgba(255,176,0,.3); }
+  .line.error  { color:var(--red-crt); text-shadow:0 0 6px rgba(255,68,68,.3); }
+  .line.bright { color:#afffaf; text-shadow:0 0 10px rgba(51,255,51,.5),0 0 3px var(--green); }
+  .line.sep    { color:var(--green-dim); opacity:.4; }
+  .line.gold   { color:#ffd700; text-shadow:0 0 8px rgba(255,215,0,.4); }
+
+  /* ── INPUT ── */
+  .input-area { padding:5px 20px 14px; position:relative; z-index:2; border-top:1px solid var(--green-faint); flex-shrink:0; }
+  .input-row  { display:flex; align-items:center; gap:8px; }
+  .prompt-label { font-size:clamp(10px,1.3vw,12px); color:var(--green-dim); white-space:nowrap; letter-spacing:1px; }
+  .prompt-sym   { color:var(--green); font-size:clamp(11px,1.4vw,13px); text-shadow:0 0 6px var(--green-glow); flex-shrink:0; }
+  #user-input { flex:1; background:transparent; border:none; outline:none; color:var(--green); font-family:'Courier New',Courier,monospace; font-size:clamp(11px,1.4vw,13px); letter-spacing:.05em; text-shadow:0 0 6px var(--green-glow),0 0 2px var(--green); caret-color:var(--green); }
+  #user-input::selection { background:var(--green-dim); color:#000; }
+  .cursor-block { display:inline-block; width:9px; height:1.1em; background:var(--green); vertical-align:text-bottom; animation:blink .9s step-end infinite; box-shadow:0 0 6px var(--green-glow); margin-left:1px; }
+
+  /* ── MONITOR BASE + BUTTONS ── */
+  .monitor-base {
+    background:linear-gradient(to bottom,#1a1a1a,#0e0e0e);
+    border-radius:0 0 18px 18px;
+    padding:10px 24px 16px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    box-shadow:0 0 0 2px #333,0 0 0 5px #222,0 8px 40px rgba(0,0,0,.9);
+    border:1px solid #333;
+    border-top:none;
+    gap:12px;
+  }
+
+  /* control buttons group */
+  .ctrl-group { display:flex; gap:8px; align-items:center; }
+  .ctrl-label { font-family:'Courier New',monospace; font-size:7px; color:#444; letter-spacing:2px; text-transform:uppercase; margin-right:4px; }
+
+  .ctrl-btn {
+    font-family:'Courier New',monospace;
+    font-size:9px;
+    letter-spacing:1.5px;
+    text-transform:uppercase;
+    color:#888;
+    background:radial-gradient(circle at 40% 35%,#2a2a2a,#181818 60%,#111);
+    border:1px solid #444;
+    border-radius:3px;
+    padding:5px 10px;
+    cursor:pointer;
+    box-shadow:0 2px 4px rgba(0,0,0,.6),inset 0 1px 0 rgba(255,255,255,.06);
+    transition:all .1s;
+    white-space:nowrap;
+  }
+  .ctrl-btn:hover { color:#aaa; border-color:#666; }
+  .ctrl-btn:active { transform:translateY(1px); box-shadow:0 1px 2px rgba(0,0,0,.6),inset 0 1px 0 rgba(255,255,255,.03); }
+  .ctrl-btn.green-btn { color:#33ff33; border-color:#1a5c1a; text-shadow:0 0 4px rgba(51,255,51,.4); }
+  .ctrl-btn.green-btn:hover { background:radial-gradient(circle at 40% 35%,#1a2e1a,#111); }
+  .ctrl-btn.amber-btn { color:var(--amber); border-color:#5c4400; text-shadow:0 0 4px rgba(255,176,0,.3); }
+  .ctrl-btn.red-btn   { color:var(--red-crt); border-color:#5c1a1a; text-shadow:0 0 4px rgba(255,68,68,.3); }
+
+  /* power button */
+  .power-btn-wrap { display:flex; flex-direction:column; align-items:center; gap:4px; }
+  .power-btn {
+    width:40px; height:40px; border-radius:50%; border:none; cursor:pointer; position:relative; outline:none;
+    background:radial-gradient(circle at 38% 34%,#d6d0c4,#a09890 60%,#7a7068);
+    box-shadow:inset 0 3px 6px rgba(255,255,255,.35),inset 0 -3px 6px rgba(0,0,0,.45),0 3px 8px rgba(0,0,0,.7),0 0 0 2px #555,0 0 0 3px #888,0 0 0 4px #444;
+    transition:transform .08s,box-shadow .08s;
+  }
+  .power-btn::before { content:''; position:absolute; inset:5px; border-radius:50%; background:radial-gradient(circle at 38% 30%,#ccc7bc,#918880 55%,#6a6058); box-shadow:inset 0 2px 4px rgba(255,255,255,.3),inset 0 -2px 4px rgba(0,0,0,.4); }
+  .power-icon { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; z-index:2; pointer-events:none; }
+  .power-icon::before { content:''; display:block; width:14px; height:14px; border-radius:50%; border:2.5px solid #4a4540; -webkit-mask:linear-gradient(to bottom,transparent 0px,transparent 4px,black 4px,black 100%); mask:linear-gradient(to bottom,transparent 0px,transparent 4px,black 4px,black 100%); margin-top:2px; }
+  .power-icon::after  { content:''; display:block; position:absolute; width:2.5px; height:8px; background:#4a4540; border-radius:1px; top:50%; left:50%; transform:translate(-50%,-68%); }
+  .power-btn:active { transform:translateY(2px) scale(.97); box-shadow:inset 0 1px 3px rgba(255,255,255,.15),0 1px 3px rgba(0,0,0,.6),0 0 0 2px #555,0 0 0 3px #888,0 0 0 4px #444; }
+  .power-led { width:6px; height:6px; border-radius:50%; background:#1a5c1a; box-shadow:0 0 5px #33ff33; animation:blink 2.5s ease-in-out infinite; border:1px solid #0a2a0a; }
+  .power-label { font-family:'Courier New',monospace; font-size:6px; color:#555; letter-spacing:1.5px; }
+
+  /* ── ANIMATIONS ── */
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+  @keyframes flicker { 0%{opacity:1} 92%{opacity:1} 93%{opacity:.85} 94%{opacity:1} 96%{opacity:.9} 97%{opacity:1} 100%{opacity:1} }
+  @keyframes screenOff { 0%{opacity:1;filter:brightness(1)} 15%{opacity:1;filter:brightness(1.6)} 35%{opacity:.5;filter:brightness(.3) blur(1px)} 65%{opacity:.1;filter:brightness(.05) blur(3px)} 100%{opacity:0;filter:brightness(0) blur(8px)} }
+  @keyframes unlockPulse { 0%{box-shadow:inset 0 0 80px rgba(0,0,0,.6),inset 0 0 20px var(--green-faint),0 0 20px var(--green-glow)} 30%{box-shadow:inset 0 0 80px rgba(0,0,0,.3),inset 0 0 40px rgba(51,255,51,.15),0 0 60px rgba(51,255,51,.3)} 100%{box-shadow:inset 0 0 80px rgba(0,0,0,.6),inset 0 0 20px var(--green-faint),0 0 20px var(--green-glow)} }
+  .screen.unlocked     { animation:flicker 8s infinite,unlockPulse 1.5s ease-out; }
+  .screen.powering-off { animation:screenOff .6s ease-in forwards !important; }
+</style>
+</head>
+<body>
+
+<div class="monitor">
+  <div class="bezel">
+    <div class="screen" id="screen">
+      <div class="noise"></div>
+      <div class="vignette"></div>
+
+      <div class="term-header">
+        <span class="term-header-sys" id="sys-name">ARCHIVUM</span>
+        <span class="term-header-timer stopped" id="timer-display">00:00:00</span>
+        <span class="term-header-clock" id="clock-display">--:--:--</span>
+      </div>
+
+      <div class="terminal" id="terminal"></div>
+
+      <div class="input-area" id="input-area" style="display:none">
+        <div class="input-row">
+          <span class="prompt-label" id="prompt-label">CÓDIGO DE ACESSO</span>
+          <span class="prompt-sym">&nbsp;▶&nbsp;</span>
+          <input id="user-input" autocomplete="off" spellcheck="false" autofocus />
+          <span class="cursor-block"></span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- BASE COM CONTROLOS -->
+  <div class="monitor-base">
+
+    <!-- Controlos de atividade -->
+    <div class="ctrl-group">
+      <span class="ctrl-label">Atividade</span>
+      <button class="ctrl-btn green-btn" id="btn-iniciar" onclick="iniciarAtividade()">▶ INICIAR</button>
+      <button class="ctrl-btn amber-btn" id="btn-parar"   onclick="pararAtividade()"   disabled>■ PARAR</button>
+    </div>
+
+    <!-- Resultados -->
+    <div class="ctrl-group">
+      <span class="ctrl-label">Registo</span>
+      <button class="ctrl-btn" id="btn-resultados" onclick="mostrarResultados()">≡ RESULTADOS</button>
+      <button class="ctrl-btn red-btn" id="btn-limpar" onclick="limparResultados()">✕ LIMPAR</button>
+    </div>
+
+    <!-- Power -->
+    <div class="power-btn-wrap">
+      <button class="power-btn" id="power-btn" onclick="powerCycle()" title="POWER">
+        <div class="power-icon"></div>
+      </button>
+      <div class="power-led"></div>
+      <span class="power-label">POWER</span>
+    </div>
+
+  </div>
+</div>
+
+<script>
+/* ══════════════════════════════════════════════════════════
+   CONFIG
+══════════════════════════════════════════════════════════ */
+const CFG = JSON.parse(document.getElementById('config').textContent.trim());
+const STORAGE_KEY = CFG.storage_key || 'geocaching_resultados';
+
+/* ══════════════════════════════════════════════════════════
+   ESTADO
+══════════════════════════════════════════════════════════ */
+let booting    = false;
+let accepting  = false;
+let typing     = false;
+let errorCount = 0;
+let inputMode  = 'codigo'; // 'codigo' | 'grupo'
+let pendingTime = null;    // tempo guardado quando código correto, aguarda nome grupo
+
+// Timer
+let timerRunning  = false;
+let timerStart    = null;
+let timerElapsed  = 0;     // ms acumulados antes de pausa
+let timerInterval = null;
+
+/* ══════════════════════════════════════════════════════════
+   ELEMENTOS
+══════════════════════════════════════════════════════════ */
+const terminal     = document.getElementById('terminal');
+const inputArea    = document.getElementById('input-area');
+const userInput    = document.getElementById('user-input');
+const screen       = document.getElementById('screen');
+const timerDisplay = document.getElementById('timer-display');
+const promptLabel  = document.getElementById('prompt-label');
+const btnIniciar   = document.getElementById('btn-iniciar');
+const btnParar     = document.getElementById('btn-parar');
+
+document.getElementById('sys-name').textContent = (CFG.sistema || 'TERMINAL').split('//')[0].trim();
+
+/* ══════════════════════════════════════════════════════════
+   UTILITÁRIOS
+══════════════════════════════════════════════════════════ */
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+
+function addLine(text, cls = '') {
+  const d = document.createElement('div');
+  d.className = 'line' + (cls ? ' ' + cls : '');
+  d.textContent = text;
+  terminal.appendChild(d);
+  terminal.scrollTop = terminal.scrollHeight;
+  return d;
+}
+
+async function typeLine(text, cls = '', delay = 22) {
+  const d = document.createElement('div');
+  d.className = 'line' + (cls ? ' ' + cls : '');
+  d.textContent = '';
+  terminal.appendChild(d);
+  for (const ch of text) {
+    d.textContent += ch;
+    terminal.scrollTop = terminal.scrollHeight;
+    await sleep(delay + Math.random() * 14);
+  }
+  return d;
+}
+
+function formatMs(ms) {
+  const s = Math.floor(ms / 1000);
+  const h = Math.floor(s / 3600);
+  const m = Math.floor((s % 3600) / 60);
+  const sec = s % 60;
+  return String(h).padStart(2,'0') + ':' + String(m).padStart(2,'0') + ':' + String(sec).padStart(2,'0');
+}
+
+/* clock */
+function updateClock() {
+  const now = new Date();
+  document.getElementById('clock-display').textContent =
+    String(now.getHours()).padStart(2,'0') + ':' +
+    String(now.getMinutes()).padStart(2,'0') + ':' +
+    String(now.getSeconds()).padStart(2,'0');
+}
+updateClock();
+setInterval(updateClock, 1000);
+
+/* ══════════════════════════════════════════════════════════
+   TIMER
+══════════════════════════════════════════════════════════ */
+function timerTick() {
+  const elapsed = timerElapsed + (Date.now() - timerStart);
+  timerDisplay.textContent = formatMs(elapsed);
+}
+
+function getElapsed() {
+  if (!timerStart && timerElapsed === 0) return 0;
+  if (timerRunning) return timerElapsed + (Date.now() - timerStart);
+  return timerElapsed;
+}
+
+/* ══════════════════════════════════════════════════════════
+   LOCAL STORAGE
+══════════════════════════════════════════════════════════ */
+function loadResultados() {
+  try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]'); } catch { return []; }
+}
+function saveResultados(list) {
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(list)); } catch {}
+}
+function registarGrupo(nome, elapsedMs) {
+  const list = loadResultados();
+  const now  = new Date();
+  list.push({
+    nome,
+    tempo:    formatMs(elapsedMs),
+    elapsedMs,
+    hora:     String(now.getHours()).padStart(2,'0') + ':' + String(now.getMinutes()).padStart(2,'0') + ':' + String(now.getSeconds()).padStart(2,'0'),
+    posicao:  list.length + 1
+  });
+  saveResultados(list);
+  return list.length; // posição
+}
+
+/* ══════════════════════════════════════════════════════════
+   CONTROLOS DE ATIVIDADE
+══════════════════════════════════════════════════════════ */
+function iniciarAtividade() {
+  if (timerRunning) return;
+  timerStart   = Date.now();
+  timerRunning = true;
+  timerInterval = setInterval(timerTick, 200);
+  timerDisplay.classList.remove('stopped');
+  btnIniciar.disabled = true;
+  btnParar.disabled   = false;
+  addLine('');
+  addLine('── ATIVIDADE INICIADA ──────────────────────────────', 'sep');
+  addLine('TIMER ATIVO. AGUARDANDO GRUPOS...', 'amber');
+  addLine('');
+  // Ativar input se ainda não estiver
+  if (!accepting && !booting && !typing) {
+    inputArea.style.display = 'block';
+    userInput.focus();
+    accepting = true;
+  }
+}
+
+function pararAtividade() {
+  if (!timerRunning) return;
+  timerElapsed += Date.now() - timerStart;
+  timerStart    = null;
+  timerRunning  = false;
+  clearInterval(timerInterval);
+  timerDisplay.classList.add('stopped');
+  btnIniciar.disabled = false;
+  btnParar.disabled   = true;
+  addLine('');
+  addLine('── TIMER PARADO ────────────────────────────────────', 'sep');
+  addLine('TEMPO FINAL: ' + formatMs(timerElapsed), 'amber');
+  addLine('');
+}
+
+/* ══════════════════════════════════════════════════════════
+   RESULTADOS
+══════════════════════════════════════════════════════════ */
+async function mostrarResultados() {
+  const list = loadResultados();
+  addLine('');
+  addLine('══════════════════════════════════════════════', 'sep');
+  await typeLine('REGISTO DE GRUPOS — RESULTADOS FINAIS', 'gold', 18);
+  addLine('══════════════════════════════════════════════', 'sep');
+  addLine('');
+  if (list.length === 0) {
+    addLine('NENHUM GRUPO REGISTADO.', 'dim');
+  } else {
+    list.forEach(r => {
+      addLine(`${String(r.posicao).padStart(2,'0')}.  ${r.nome.toUpperCase().padEnd(24,' ')}  ${r.tempo}  [${r.hora}]`, 'bright');
+    });
+  }
+  addLine('');
+  addLine('══════════════════════════════════════════════', 'sep');
+  addLine('');
+}
+
+let limparPendente = false;
+function limparResultados() {
+  if (!limparPendente) {
+    limparPendente = true;
+    addLine('');
+    addLine('CONFIRMAR LIMPEZA? CLICA NOVAMENTE EM LIMPAR.', 'error');
+    addLine('');
+    setTimeout(() => { limparPendente = false; }, 4000);
+    return;
+  }
+  limparPendente = false;
+  try {
+    localStorage.removeItem(STORAGE_KEY);
+  } catch(e) {}
+  addLine('');
+  addLine('RESULTADOS APAGADOS.', 'dim');
+  addLine('');
+}
+
+/* ══════════════════════════════════════════════════════════
+   BOOT SEQUENCE
+══════════════════════════════════════════════════════════ */
+async function boot() {
+  booting  = true;
+  accepting = false;
+  inputArea.style.display = 'none';
+  terminal.innerHTML = '';
+  await sleep(400);
+
+  await typeLine(CFG.versao || 'TERMINAL v1.0', 'dim', 14);
+  addLine('');
+
+  for (const msg of (CFG.boot_msgs || [])) {
+    if (msg === '') { addLine(''); await sleep(60); continue; }
+    if (msg.includes('VERIFICANDO') || msg.includes('ARQUIVO')) {
+      const d = addLine(msg, 'dim');
+      await sleep(260);
+      for (let i = 0; i < 5; i++) { await sleep(160); d.textContent += '█'; terminal.scrollTop = terminal.scrollHeight; }
+      await sleep(160);
+      d.textContent += ' OK';
+    } else {
+      await typeLine(msg, 'dim', 13);
+    }
+    await sleep(50);
+  }
+
+  addLine('─'.repeat(50), 'sep');
+  await sleep(160);
+  await typeLine(CFG.sistema || 'SISTEMA SEGURO', 'amber', 18);
+  addLine('─'.repeat(50), 'sep');
+  await sleep(260);
+  await typeLine('PRIMA ▶ INICIAR PARA COMEÇAR A ATIVIDADE.', 'dim', 16);
+  addLine('');
+  await typeLine('QUANDO PRONTOS: INTRODUZAM O CÓDIGO DE ACESSO.', '', 16);
+  addLine('');
+
+  // mostrar input mas não aceitar ainda (timer não iniciado)
+  inputArea.style.display = 'block';
+  userInput.focus();
+  accepting = true;
+  booting   = false;
+}
+
+/* ══════════════════════════════════════════════════════════
+   VERIFICAR CÓDIGO
+══════════════════════════════════════════════════════════ */
+async function handleInput(val) {
+  if (!accepting || typing) return;
+
+  if (inputMode === 'grupo') {
+    await handleGrupoInput(val);
+    return;
+  }
+
+  typing    = false; // reset
+  accepting = false;
+  inputArea.style.display = 'none';
+  typing    = true;
+
+  const masked = '•'.repeat(val.length);
+  addLine('CÓDIGO DE ACESSO ▶  ' + masked, 'dim');
+  await sleep(360);
+
+  const ok = (CFG.passwords || []).some(p =>
+    p.localeCompare(val.trim(), undefined, {sensitivity:'accent'}) === 0
+  );
+
+  if (ok) {
+    // Registar tempo imediatamente
+    pendingTime = getElapsed();
+
+    screen.classList.add('unlocked');
+    setTimeout(() => screen.classList.remove('unlocked'), 1500);
+    addLine('');
+    const authLine = addLine('AUTENTICANDO ', 'bright');
+    for (let i = 0; i < 20; i++) {
+      await sleep(55 + Math.random() * 35);
+      authLine.textContent = 'AUTENTICANDO [' + '█'.repeat(i+1) + '░'.repeat(19-i) + ']';
+      terminal.scrollTop = terminal.scrollHeight;
+    }
+    authLine.textContent = 'AUTENTICANDO [████████████████████] COMPLETO';
+    await sleep(460);
+    addLine('');
+
+    for (const line of (CFG.resposta || [])) {
+      if (line === '')       { addLine(''); await sleep(50); continue; }
+      if (line.startsWith('─')) { addLine(line, 'sep'); await sleep(60); continue; }
+      if (line.startsWith('COORDENADAS') || line.startsWith('▶')) await typeLine(line, 'amber', 20);
+      else if (line.startsWith('MENSAGEM') || line.startsWith('[') || line.startsWith('DESENCRIPT')) await typeLine(line, 'bright', 16);
+      else await typeLine(line, '', 24);
+    }
+
+    addLine('');
+    addLine('─'.repeat(50), 'sep');
+    addLine('');
+
+    // Pedir nome do grupo
+    await typeLine('REGISTE O VOSSO GRUPO PARA MARCAR O TEMPO.', 'amber', 18);
+    addLine('');
+    promptLabel.textContent = CFG.prompt_grupo || 'NOME DO GRUPO';
+    userInput.type    = 'text';
+    userInput.value   = '';
+    inputMode         = 'grupo';
+    inputArea.style.display = 'block';
+    userInput.focus();
+    accepting = true;
+
+  } else {
+    errorCount++;
+    addLine('');
+    screen.style.boxShadow = 'inset 0 0 80px rgba(0,0,0,.6),inset 0 0 30px rgba(255,50,50,.12),0 0 30px rgba(255,50,50,.2)';
+    await sleep(320);
+    screen.style.boxShadow = '';
+    for (const msg of (CFG.erro_msgs || ['ACESSO NEGADO.'])) {
+      await typeLine(msg, 'error', 18);
+    }
+    if (errorCount >= 3) await typeLine(`AVISO: ${errorCount} TENTATIVAS FALHADAS.`, 'error', 18);
+    addLine('');
+    await sleep(500);
+    promptLabel.textContent = CFG.prompt_label || 'CÓDIGO DE ACESSO';
+    userInput.type  = 'password';
+    userInput.value = '';
+    inputArea.style.display = 'block';
+    userInput.focus();
+    accepting = true;
+  }
+  typing = false;
+}
+
+async function handleGrupoInput(val) {
+  accepting = false;
+  inputArea.style.display = 'none';
+  typing = true;
+
+  const nome = val.trim() || 'GRUPO DESCONHECIDO';
+  addLine('NOME DO GRUPO ▶  ' + nome.toUpperCase(), 'dim');
+  await sleep(300);
+
+  const pos = registarGrupo(nome, pendingTime);
+  pendingTime = null;
+
+  addLine('');
+  await typeLine(`▶ GRUPO "${nome.toUpperCase()}" REGISTADO!`, 'gold', 20);
+  await typeLine(`▶ POSIÇÃO: ${pos}º  |  TEMPO: ${formatMs(getElapsed())}`, 'gold', 20);
+  addLine('');
+  addLine('─'.repeat(50), 'sep');
+  addLine('');
+  await typeLine('PRONTO PARA PRÓXIMO GRUPO.', 'dim', 16);
+  addLine('');
+
+  // Reset para próximo grupo
+  inputMode = 'codigo';
+  promptLabel.textContent = CFG.prompt_label || 'CÓDIGO DE ACESSO';
+  userInput.type  = 'password';
+  userInput.value = '';
+  errorCount      = 0;
+  inputArea.style.display = 'block';
+  userInput.focus();
+  accepting = true;
+  typing    = false;
+}
+
+/* ══════════════════════════════════════════════════════════
+   POWER BUTTON
+══════════════════════════════════════════════════════════ */
+async function powerCycle() {
+  if (booting || typing) return;
+  accepting    = false;
+  timerRunning = false;
+  clearInterval(timerInterval);
+  timerStart   = null;
+  timerElapsed = 0;
+  timerDisplay.textContent = '00:00:00';
+  timerDisplay.classList.add('stopped');
+  btnIniciar.disabled = false;
+  btnParar.disabled   = true;
+  inputMode   = 'codigo';
+  errorCount  = 0;
+  pendingTime = null;
+
+  screen.classList.add('powering-off');
+  await sleep(680);
+  screen.classList.remove('powering-off');
+  screen.style.opacity = '';
+  screen.style.filter  = '';
+  promptLabel.textContent = CFG.prompt_label || 'CÓDIGO DE ACESSO';
+  userInput.type  = 'password';
+  userInput.value = '';
+  await sleep(100);
+  boot();
+}
+
+/* ══════════════════════════════════════════════════════════
+   INPUT HANDLER
+══════════════════════════════════════════════════════════ */
+userInput.addEventListener('keydown', async e => {
+  if (e.key === 'Enter') {
+    const val = userInput.value;
+    userInput.value = '';
+    await handleInput(val);
+  }
+});
+screen.addEventListener('click', () => { if (accepting) userInput.focus(); });
+
+/* ══════════════════════════════════════════════════════════
+   ARRANQUE
+══════════════════════════════════════════════════════════ */
+boot();
+</script>
+</body>
+</html>
